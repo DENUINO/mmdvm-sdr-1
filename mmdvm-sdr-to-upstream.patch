@@ -1,0 +1,6539 @@
+--- /tmp/upstream-mmdvm/./CWIdTX.cpp	2025-11-16 19:25:50.726622621 +0000
++++ ././CWIdTX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -77,7 +77,6 @@
+   {',', 0xEEAEE000U, 22U},
+   {'-', 0xEAAE0000U, 18U},
+   {'=', 0xEAB80000U, 16U},
+-  {'.', 0xBAEB8000U, 20U},
+   {' ', 0x00000000U, 4U},
+   {0U,  0x00000000U, 0U}
+ };
+@@ -125,7 +124,7 @@
+   }
+ }
+ 
+-uint8_t CCWIdTX::write(const uint8_t* data, uint16_t length)
++uint8_t CCWIdTX::write(const uint8_t* data, uint8_t length)
+ {
+   ::memset(m_poBuffer, 0x00U, 1000U * sizeof(uint8_t));
+ 
+@@ -160,7 +159,7 @@
+ 
+   m_poLen += 5U;
+ 
+-  DEBUG2("Message created with length", m_poLen);
++  DEBUG2("Message created with length: %d", m_poLen);
+ 
+   return 0U;
+ }
+@@ -171,3 +170,4 @@
+   m_poPtr = 0U;
+   m_n     = 0U;
+ }
++
+--- /tmp/upstream-mmdvm/./CWIdTX.h	2025-11-16 19:25:50.726622621 +0000
++++ ././CWIdTX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,6 +1,6 @@
+ /*
+  *   Copyright (C) 2009-2015 by Jonathan Naylor G4KLX
+- *   Copyright (C) 2016,2020 by Colin Durbridge G4EML
++ *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -28,7 +28,7 @@
+ 
+   void process();
+ 
+-  uint8_t write(const uint8_t* data, uint16_t length);
++  uint8_t write(const uint8_t* data, uint8_t length);
+ 
+   void reset();
+ 
+--- /tmp/upstream-mmdvm/./CalDMR.cpp	2025-11-16 19:25:50.727622637 +0000
++++ ././CalDMR.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2015,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2015 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -18,9 +18,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #include "Globals.h"
+ #include "CalDMR.h"
+ 
+@@ -211,7 +208,7 @@
+   }
+ }
+ 
+-uint8_t CCalDMR::write(const uint8_t* data, uint16_t length)
++uint8_t CCalDMR::write(const uint8_t* data, uint8_t length)
+ {
+   if (length != 1U)
+     return 4U;
+@@ -224,5 +221,3 @@
+   return 0U;
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./CalDMR.h	2025-11-16 19:25:50.727622637 +0000
++++ ././CalDMR.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2015,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2015 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -17,13 +17,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #if !defined(CALDMR_H)
+ #define  CALDMR_H
+ 
++#include "Config.h"
+ #include "DMRDefines.h"
+ 
+ enum DMRCAL1K {
+@@ -44,7 +41,7 @@
+   void createData1k(uint8_t n);
+   void createDataDMO1k(uint8_t n);
+ 
+-  uint8_t write(const uint8_t* data, uint16_t length);
++  uint8_t write(const uint8_t* data, uint8_t length);
+ 
+ private:
+   bool      m_transmit;
+@@ -56,5 +53,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./CalDStarRX.cpp	2025-11-16 19:25:50.727622637 +0000
++++ ././CalDStarRX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2016,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2016 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,9 +17,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DSTAR)
+-
+ #include "Globals.h"
+ #include "CalDStarRX.h"
+ #include "Utils.h"
+@@ -27,7 +24,7 @@
+ const unsigned int BUFFER_LENGTH = 200U;
+ 
+ const uint32_t PLLMAX = 0x10000U;
+-const uint32_t PLLINC = PLLMAX / DSTAR_RADIO_SYMBOL_LENGTH;
++const uint32_t PLLINC = PLLMAX / DSTAR_RADIO_BIT_LENGTH;
+ const uint32_t INC    = PLLINC / 32U;
+ 
+ // D-Star bit order version of 0x55 0x2D 0x16
+@@ -129,5 +126,3 @@
+   }
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./CalDStarRX.h	2025-11-16 19:25:50.727622637 +0000
++++ ././CalDStarRX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,13 +16,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DSTAR)
+-
+ #if !defined(CALDSTARRX_H)
+ #define  CALDSTARRX_H
+ 
++#include "Config.h"
+ #include "DStarDefines.h"
+ 
+ class CCalDStarRX {
+@@ -43,5 +40,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./CalDStarTX.cpp	2025-11-16 19:25:50.728622652 +0000
++++ ././CalDStarTX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2016,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2016 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,9 +17,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DSTAR)
+-
+ #include "Globals.h"
+ #include "CalDStarTX.h"
+ 
+@@ -165,7 +162,7 @@
+   m_count = (m_count + 1U) % (30U * 21U);
+ }
+ 
+-uint8_t CCalDStarTX::write(const uint8_t* data, uint16_t length)
++uint8_t CCalDStarTX::write(const uint8_t* data, uint8_t length)
+ {
+   if (length != 1U)
+     return 4U;
+@@ -184,5 +181,3 @@
+   return 0U;
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./CalDStarTX.h	2025-11-16 19:25:50.728622652 +0000
++++ ././CalDStarTX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,20 +16,17 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DSTAR)
+-
+ #if !defined(CALDSTARTX_H)
+ #define  CALDSTARTX_H
+ 
++#include "Config.h"
+ #include "DStarDefines.h"
+ 
+ class CCalDStarTX {
+ public:
+   CCalDStarTX();
+ 
+-  uint8_t write(const uint8_t* data, uint16_t length);
++  uint8_t write(const uint8_t* data, uint8_t length);
+ 
+   void process();
+ 
+@@ -40,5 +37,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./CalNXDN.cpp	2025-11-16 19:25:50.728622652 +0000
++++ ././CalNXDN.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,6 +1,5 @@
+ /*
+  *   Copyright (C) 2018 by Andy Uribe CA6JAU
+- *   Copyright (C) 2020 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -18,9 +17,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_NXDN)
+-
+ #include "Globals.h"
+ #include "CalNXDN.h"
+ 
+@@ -83,7 +79,7 @@
+   }
+ }
+ 
+-uint8_t CCalNXDN::write(const uint8_t* data, uint16_t length)
++uint8_t CCalNXDN::write(const uint8_t* data, uint8_t length)
+ {
+   if (length != 1U)
+     return 4U;
+@@ -96,5 +92,3 @@
+   return 0U;
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./CalNXDN.h	2025-11-16 19:25:50.728622652 +0000
++++ ././CalNXDN.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,6 +1,5 @@
+ /*
+  *   Copyright (C) 2018 by Andy Uribe CA6JAU
+- *   Copyright (C) 2020 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,13 +16,11 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_NXDN)
+-
+ #if !defined(CALNXDN_H)
+ #define  CALNXDN_H
+ 
++#include "Config.h"
++
+ enum NXDNCAL1K {
+   NXDNCAL1K_IDLE,
+   NXDNCAL1K_TX
+@@ -35,7 +32,7 @@
+ 
+   void process();
+ 
+-  uint8_t write(const uint8_t* data, uint16_t length);
++  uint8_t write(const uint8_t* data, uint8_t length);
+ 
+ private:
+   bool      m_transmit;
+@@ -45,5 +42,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./CalP25.cpp	2025-11-16 19:25:50.728622652 +0000
++++ ././CalP25.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,6 +1,5 @@
+ /*
+  *   Copyright (C) 2018 by Andy Uribe CA6JAU
+- *   Copyright (C) 2020 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -18,9 +17,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_P25)
+-
+ #include "Globals.h"
+ #include "CalP25.h"
+ 
+@@ -86,7 +82,7 @@
+   }
+ }
+ 
+-uint8_t CCalP25::write(const uint8_t* data, uint16_t length)
++uint8_t CCalP25::write(const uint8_t* data, uint8_t length)
+ {
+   if (length != 1U)
+     return 4U;
+@@ -99,5 +95,3 @@
+   return 0U;
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./CalP25.h	2025-11-16 19:25:50.729622668 +0000
++++ ././CalP25.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,6 +1,5 @@
+ /*
+  *   Copyright (C) 2018 by Andy Uribe CA6JAU
+- *   Copyright (C) 2020 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,13 +16,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_P25)
+-
+ #if !defined(CALP25_H)
+ #define  CALP25_H
+ 
++#include "Config.h"
+ #include "P25Defines.h"
+ 
+ enum P25CAL1K {
+@@ -38,7 +34,7 @@
+ 
+   void process();
+ 
+-  uint8_t write(const uint8_t* data, uint16_t length);
++  uint8_t write(const uint8_t* data, uint8_t length);
+ 
+ private:
+   bool      m_transmit;
+@@ -47,5 +43,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./Config.h	2025-11-16 19:25:50.729622668 +0000
++++ ././Config.h	2025-11-16 18:39:33.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2018,2020,2025 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -19,31 +19,6 @@
+ #if !defined(CONFIG_H)
+ #define  CONFIG_H
+ 
+-// Allow for the selection of which modes to compile into the firmware. This is particularly useful for processors
+-// which have limited code space and processing power.
+-
+-// Enable D-Star support.
+-#define MODE_DSTAR
+-
+-// Enable DMR support.
+-#define MODE_DMR
+-
+-// Enable System Fusion support.
+-#define MODE_YSF
+-
+-// Enable P25 phase 1 support.
+-#define MODE_P25
+-
+-// Enable NXDN support, the boxcar filter sometimes improves the performance of NXDN receive on some systems.
+-#define MODE_NXDN
+-#define USE_NXDN_BOXCAR
+-
+-// Enable POCSAG support.
+-#define MODE_POCSAG
+-
+-// Enable FM support.
+-#define MODE_FM
+-
+ // Allow for the use of high quality external clock oscillators
+ // The number is the frequency of the oscillator in Hertz.
+ //
+@@ -60,14 +35,11 @@
+ // For 19.2 MHz
+ // #define EXTERNAL_OSC 19200000
+ 
+-// Select a baud rate for host communication. The faster speeds are needed for external FM to work.
+-// #define SERIAL_SPEED 115200 // Suitable for most older boards (Arduino Due, etc). External FM will NOT work with this!
+-// #define SERIAL_SPEED 230400 // Only works on newer boards like fast M4, M7, Teensy 3.x. External FM might work with this
+-#define SERIAL_SPEED 460800	// Only works on newer boards like fast M4, M7, Teensy 3.x. External FM should work with this
+-//#define SERIAL_SPEED 500000  // Used with newer boards and Armbian on AllWinner SOCs (H2, H3) that do not support 460800
++// Allow the use of the COS line to lockout the modem
++// #define USE_COS_AS_LOCKOUT
+ 
+-// Use pins to output the current mode via LEDs
+-#define MODE_LEDS
++// Use pins to output the current mode
++// #define ARDUINO_MODE_PINS
+ 
+ // For the original Arduino Due pin layout
+ // #define ARDUINO_DUE_PAPA
+@@ -75,6 +47,9 @@
+ // For the ZUM V1.0 and V1.0.1 boards pin layout
+ // #define ARDUINO_DUE_ZUM_V10
+ 
++// For the SQ6POG board
++// #define STM32F1_POG
++
+ // For the SP8NTH board
+ // #define ARDUINO_DUE_NTH
+ 
+@@ -82,39 +57,62 @@
+ // #define STM32F4_NUCLEO_MORPHO_HEADER
+ // #define STM32F4_NUCLEO_ARDUINO_HEADER
+ 
+-// Use separate mode pins to switch external channel/filters/bandwidth for example
+-// #define MODE_PINS
+-
+-// For the VK6MST Pi3 Shield communicating over i2c. i2c address & speed defined in i2cTeensy.cpp
+-// #define VK6MST_TEENSY_PI3_SHIELD_I2C
++// Use separate mode pins to switch external filters/bandwidth for example
++// #define STM32F4_NUCLEO_MODE_PINS
+ 
+ // Pass RSSI information to the host
+-#define SEND_RSSI_DATA
++// #define SEND_RSSI_DATA
+ 
+ // Use the modem as a serial repeater for Nextion displays
+-#define SERIAL_REPEATER
+-
+-// Set the baud rate of the modem serial repeater for Nextion displays
+-#define SERIAL_REPEATER_BAUD_RATE 9600
+-
+-// Use the modem as an I2C repeater for OLED displays
+-// #define I2C_REPEATER
++// #define SERIAL_REPEATER
+ 
+ // To reduce CPU load, you can remove the DC blocker by commenting out the next line
+ #define USE_DCBLOCKER
+ 
+-// Constant Service LED once repeater is running 
+-// Do not use if employing an external hardware watchdog 
+-// #define CONSTANT_SRV_LED
+-
+-// Use the YSF and P25 LEDs for NXDN
+-// #define USE_ALTERNATE_NXDN_LEDS
+-
+-// Use the D-Star and DMR LEDs for POCSAG
+-#define USE_ALTERNATE_POCSAG_LEDS
+-
+-// Use the D-Star and YSF LEDs for FM
+-#define USE_ALTERNATE_FM_LEDS
+-
++// ==================== Standalone SDR Mode ====================
++// Uncomment to enable standalone SDR operation (no GNU Radio required)
++// This integrates PlutoSDR direct access, FM modem, and resampling
++// #define STANDALONE_MODE
++
++// PlutoSDR configuration (requires STANDALONE_MODE)
++#if defined(STANDALONE_MODE)
++  // SDR device type defaults (only used when building without CMake)
++  // When using CMake, these are controlled by build options
++  // #if !defined(PLUTO_SDR) && !defined(HACKRF) && !defined(LIMESDR)
++  //   #define PLUTO_SDR
++  // #endif
++
++  // ARM NEON SIMD optimizations (controlled by CMake -DUSE_NEON=ON/OFF)
++  // Recommended for PlutoSDR (Zynq7000 Cortex-A9) and RaspberryPi 2+
++
++  // Text UI (controlled by CMake -DUSE_TEXT_UI=ON/OFF)
++  // Requires ncurses library
++
++  // SDR sample rate (Hz) - PlutoSDR supports 520kHz to 61.44MHz
++  #define SDR_SAMPLE_RATE 1000000U
++
++  // MMDVM baseband rate (fixed by protocol)
++  #define BASEBAND_RATE 24000U
++
++  // FM deviation for PlutoSDR (Hz)
++  #define FM_DEVIATION 5000.0f
++
++  // PlutoSDR default URI
++  #define PLUTO_URI "ip:192.168.2.1"
++  // #define PLUTO_URI "usb:"
++  // #define PLUTO_URI "local:"
++
++  // Buffer sizes for SDR I/O
++  #define SDR_RX_BUFFER_SIZE 32768U
++  #define SDR_TX_BUFFER_SIZE 32768U
++
++  // Text UI update rate (Hz)
++  #define UI_UPDATE_RATE 10U
++
++  // Debug options for standalone mode
++  // #define DEBUG_SDR_IO
++  // #define DEBUG_RESAMPLER
++  // #define DEBUG_FM_MODEM
+ #endif
+ 
++#endif
+--- /tmp/upstream-mmdvm/./DMRDMORX.cpp	2025-11-16 19:25:50.730622683 +0000
++++ ././DMRDMORX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,13 +17,11 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #include "Globals.h"
+ #include "DMRDMORX.h"
+ #include "DMRSlotType.h"
+ #include "Utils.h"
++#include "Log.h"
+ 
+ const q15_t SCALING_FACTOR = 19505;      // Q15(0.60)
+ 
+@@ -195,6 +193,7 @@
+       if (m_state != DMORXS_NONE) {
+         m_syncCount++;
+         if (m_syncCount >= MAX_SYNC_LOST_FRAMES) {
++          DEBUG1("DMR Lost Here!!!");
+           serial.writeDMRLost(true);
+           reset();
+         }
+@@ -209,6 +208,9 @@
+         }
+ 
+         serial.writeDMRData(true, frame, DMR_FRAME_LENGTH_BYTES + 1U);
++        DEBUG1("Frame Start");
++        for (int i = 0; i < DMR_FRAME_LENGTH_BYTES + 3U; i+=3)
++          DEBUG4("Frame: %u %u %u", frame[i], frame[i+1], frame[i+2]);
+       } else if (m_state == DMORXS_DATA) {
+         if (m_type != 0x00U) {
+           frame[0U] = CONTROL_DATA | m_type;
+@@ -426,6 +428,3 @@
+   serial.writeDMRData(true, frame, DMR_FRAME_LENGTH_BYTES + 1U);
+ #endif
+ }
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRDMORX.h	2025-11-16 19:25:50.730622683 +0000
++++ ././DMRDMORX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,13 +16,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #if !defined(DMRDMORX_H)
+ #define  DMRDMORX_H
+ 
++#include "Config.h"
+ #include "DMRDefines.h"
+ 
+ const uint16_t DMO_BUFFER_LENGTH_SAMPLES = 1440U;   // 60ms at 24 kHz
+@@ -70,6 +67,3 @@
+ };
+ 
+ #endif
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRDMOTX.cpp	2025-11-16 19:25:50.730622683 +0000
++++ ././DMRDMOTX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *   Copyright (C) 2017 by Andy Uribe CA6JAU
+  *
+@@ -19,12 +19,11 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #include "Globals.h"
+ #include "DMRSlotType.h"
+ 
++#include "Log.h"
++
+ // Generated using rcosdesign(0.2, 8, 5, 'sqrt') in MATLAB
+ static q15_t RRC_0_2_FILTER[] = {0, 0, 0, 0, 850, 219, -720, -1548, -1795, -1172, 237, 1927, 3120, 3073, 1447, -1431, -4544, -6442,
+                                  -5735, -1633, 5651, 14822, 23810, 30367, 32767, 30367, 23810, 14822, 5651, -1633, -5735, -6442,
+@@ -41,13 +40,6 @@
+ #define WRITE_BIT1(p,i,b) p[(i)>>3] = (b) ? (p[(i)>>3] | BIT_MASK_TABLE[(i)&7]) : (p[(i)>>3] & ~BIT_MASK_TABLE[(i)&7])
+ #define READ_BIT1(p,i)    (p[(i)>>3] & BIT_MASK_TABLE[(i)&7])
+ 
+-// PR FILL pattern
+-const uint8_t PR_FILL[] =
+-        {0x63U, 0xEAU, 0x00U, 0x76U, 0x6CU, 0x76U, 0xC4U, 0x52U, 0xC8U, 0x78U,
+-         0x09U, 0x2DU, 0xB8U, 0x79U, 0x27U, 0x57U, 0x9BU, 0x31U, 0xBCU, 0x3EU,
+-         0xEAU, 0x45U, 0xC3U, 0x30U, 0x49U, 0x17U, 0x93U, 0xAEU, 0x8BU, 0x6DU,
+-         0xA4U, 0xA5U, 0xADU, 0xA2U, 0xF1U, 0x35U, 0xB5U, 0x3CU, 0x1EU};
+-
+ const uint8_t DMR_SYNC = 0x5FU;
+ 
+ CDMRDMOTX::CDMRDMOTX() :
+@@ -69,6 +61,8 @@
+ 
+ void CDMRDMOTX::process()
+ {
++  //DEBUG1("DMRDMOTX::process() invoked");
++
+   if (m_poLen == 0U && m_fifo.getData() > 0U) {
+     if (!m_tx) {
+       for (uint16_t i = 0U; i < m_txDelay; i++)
+@@ -76,11 +70,11 @@
+ 
+       m_poLen = m_txDelay;
+     } else {
+-      for (unsigned int i = 0U; i < DMR_FRAME_LENGTH_BYTES; i++)
+-        m_fifo.get(m_poBuffer[i]);
++      for (unsigned int i = 0U; i < 72U; i++)
++        m_poBuffer[i] = DMR_SYNC;
+ 
+-      for (unsigned int i = 0U; i < 39U; i++)
+-        m_poBuffer[i + DMR_FRAME_LENGTH_BYTES] = PR_FILL[i];
++      for (unsigned int i = 0U; i < DMR_FRAME_LENGTH_BYTES; i++)
++        m_poBuffer[i + 39U] = m_fifo.get();
+ 
+       m_poLen = 72U;
+     }
+@@ -107,7 +101,7 @@
+   }
+ }
+ 
+-uint8_t CDMRDMOTX::writeData(const uint8_t* data, uint16_t length)
++uint8_t CDMRDMOTX::writeData(const uint8_t* data, uint8_t length)
+ {
+   if (length != (DMR_FRAME_LENGTH_BYTES + 1U))
+     return 4U;
+@@ -164,5 +158,3 @@
+     m_txDelay = 1200U;
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRDMOTX.h	2025-11-16 19:25:50.730622683 +0000
++++ ././DMRDMOTX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -17,22 +17,19 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #if !defined(DMRDMOTX_H)
+ #define  DMRDMOTX_H
+ 
++#include "Config.h"
+ #include "DMRDefines.h"
+ 
+-#include "RingBuffer.h"
++#include "SerialRB.h"
+ 
+ class CDMRDMOTX {
+ public:
+   CDMRDMOTX();
+ 
+-  uint8_t writeData(const uint8_t* data, uint16_t length);
++  uint8_t writeData(const uint8_t* data, uint8_t length);
+ 
+   void process();
+ 
+@@ -41,7 +38,7 @@
+   uint8_t getSpace() const;
+ 
+ private:
+-  CRingBuffer<uint8_t>                        m_fifo;
++  CSerialRB                        m_fifo;
+   arm_fir_interpolate_instance_q15 m_modFilter;
+   q15_t                            m_modState[16U];    // blockSize + phaseLength - 1, 4 + 9 - 1 plus some spare
+   uint8_t                          m_poBuffer[1200U];
+@@ -54,5 +51,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRIdleRX.cpp	2025-11-16 19:25:50.731622698 +0000
++++ ././DMRIdleRX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,9 +17,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #include "Globals.h"
+ #include "DMRIdleRX.h"
+ #include "DMRSlotType.h"
+@@ -159,6 +156,7 @@
+ 
+     if (colorCode == m_colorCode && dataType == DT_CSBK) {
+       frame[0U] = CONTROL_IDLE | CONTROL_DATA | DT_CSBK;
++      DEBUG1("CSBK Received");
+       serial.writeDMRData(false, frame, DMR_FRAME_LENGTH_BYTES + 1U);
+     }
+ 
+@@ -212,6 +210,3 @@
+ {
+   m_colorCode = colorCode;
+ }
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRIdleRX.h	2025-11-16 19:25:50.731622698 +0000
++++ ././DMRIdleRX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,13 +16,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #if !defined(DMRIDLERX_H)
+ #define  DMRIDLERX_H
+ 
++#include "Config.h"
+ #include "DMRDefines.h"
+ 
+ class CDMRIdleRX {
+@@ -52,5 +49,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRRX.cpp	2025-11-16 19:25:50.731622698 +0000
++++ ././DMRRX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,11 +17,9 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #include "Globals.h"
+ #include "DMRRX.h"
++#include "Log.h"
+ 
+ CDMRRX::CDMRRX() :
+ m_slot1RX(false),
+@@ -71,5 +69,3 @@
+   m_slot2RX.reset();
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRRX.h	2025-11-16 19:25:50.731622698 +0000
++++ ././DMRRX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,13 +16,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #if !defined(DMRRX_H)
+ #define  DMRRX_H
+ 
++#include "Config.h"
+ #include "DMRSlotRX.h"
+ 
+ class CDMRRX {
+@@ -43,5 +40,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRSlotRX.cpp	2025-11-16 19:25:50.731622698 +0000
++++ ././DMRSlotRX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,9 +17,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #include "Globals.h"
+ #include "DMRSlotRX.h"
+ #include "DMRSlotType.h"
+@@ -403,6 +400,3 @@
+   serial.writeDMRData(m_slot, frame, DMR_FRAME_LENGTH_BYTES + 1U);
+ #endif
+ }
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRSlotRX.h	2025-11-16 19:25:50.732622713 +0000
++++ ././DMRSlotRX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,13 +16,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #if !defined(DMRSLOTRX_H)
+ #define  DMRSLOTRX_H
+ 
++#include "Config.h"
+ #include "DMRDefines.h"
+ 
+ enum DMRRX_STATE {
+@@ -73,6 +70,3 @@
+ };
+ 
+ #endif
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRSlotType.cpp	2025-11-16 19:25:50.732622713 +0000
++++ ././DMRSlotType.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,9 +17,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #include "Globals.h"
+ #include "DMRSlotType.h"
+ 
+@@ -288,5 +285,3 @@
+   frame[20U] = (frame[20U] & 0x03U) | ((slotType[1U] << 6) & 0xC0U) | ((slotType[2U] >> 2) & 0x3CU);
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRSlotType.h	2025-11-16 19:25:50.732622713 +0000
++++ ././DMRSlotType.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,10 +16,6 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #if !defined(DMRSLOTTYPE_H)
+ #define  DMRSLOTTYPE_H
+ 
+@@ -39,5 +35,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRTX.cpp	2025-11-16 19:25:50.732622713 +0000
++++ ././DMRTX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *   Copyright (C) 2017 by Andy Uribe CA6JAU
+  *
+@@ -19,12 +19,11 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #include "Globals.h"
+ #include "DMRSlotType.h"
+ 
++#include "Log.h"
++
+ // Generated using rcosdesign(0.2, 8, 5, 'sqrt') in MATLAB
+ static q15_t RRC_0_2_FILTER[] = {0, 0, 0, 0, 850, 219, -720, -1548, -1795, -1172, 237, 1927, 3120, 3073, 1447, -1431, -4544, -6442,
+                                  -5735, -1633, 5651, 14822, 23810, 30367, 32767, 30367, 23810, 14822, 5651, -1633, -5735, -6442,
+@@ -95,6 +94,8 @@
+ 
+ void CDMRTX::process()
+ {
++  //LogDebug("DMRTX::process() invoked!");
++
+   if (m_state == DMRTXSTATE_IDLE)
+     return;
+ 
+@@ -147,7 +148,7 @@
+   }
+ }
+ 
+-uint8_t CDMRTX::writeData1(const uint8_t* data, uint16_t length)
++uint8_t CDMRTX::writeData1(const uint8_t* data, uint8_t length)
+ {
+   if (length != (DMR_FRAME_LENGTH_BYTES + 1U))
+     return 4U;
+@@ -171,7 +172,7 @@
+   return 0U;
+ }
+ 
+-uint8_t CDMRTX::writeData2(const uint8_t* data, uint16_t length)
++uint8_t CDMRTX::writeData2(const uint8_t* data, uint8_t length)
+ {
+   if (length != (DMR_FRAME_LENGTH_BYTES + 1U))
+     return 4U;
+@@ -195,7 +196,7 @@
+   return 0U;
+ }
+ 
+-uint8_t CDMRTX::writeShortLC(const uint8_t* data, uint16_t length)
++uint8_t CDMRTX::writeShortLC(const uint8_t* data, uint8_t length)
+ {
+   if (length != 9U)
+     return 4U;
+@@ -211,7 +212,7 @@
+   return 0U;
+ }
+ 
+-uint8_t CDMRTX::writeAbort(const uint8_t* data, uint16_t length)
++uint8_t CDMRTX::writeAbort(const uint8_t* data, uint8_t length)
+ {
+   if (length != 1U)
+     return 4U;
+@@ -296,7 +297,7 @@
+ {
+   if (m_fifo[slotIndex].getData() >= DMR_FRAME_LENGTH_BYTES && m_frameCount >= STARTUP_COUNT && m_abortCount[slotIndex] >= ABORT_COUNT) {
+     for (unsigned int i = 0U; i < DMR_FRAME_LENGTH_BYTES; i++) {
+-      m_fifo[slotIndex].get(m_poBuffer[i]);
++      m_poBuffer[i]   = m_fifo[slotIndex].get();
+       m_markBuffer[i] = MARK_NONE;
+     }
+   } else {
+@@ -417,6 +418,3 @@
+ {
+   return m_frameCount;
+ }
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DMRTX.h	2025-11-16 19:25:50.733622729 +0000
++++ ././DMRTX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -17,16 +17,13 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DMR)
+-
+ #if !defined(DMRTX_H)
+ #define  DMRTX_H
+ 
++#include "Config.h"
+ #include "DMRDefines.h"
+ 
+-#include "RingBuffer.h"
++#include "SerialRB.h"
+ 
+ enum DMRTXSTATE {
+   DMRTXSTATE_IDLE,
+@@ -41,11 +38,11 @@
+ public:
+   CDMRTX();
+ 
+-  uint8_t writeData1(const uint8_t* data, uint16_t length);
+-  uint8_t writeData2(const uint8_t* data, uint16_t length);
++  uint8_t writeData1(const uint8_t* data, uint8_t length);
++  uint8_t writeData2(const uint8_t* data, uint8_t length);
+ 
+-  uint8_t writeShortLC(const uint8_t* data, uint16_t length);
+-  uint8_t writeAbort(const uint8_t* data, uint16_t length);
++  uint8_t writeShortLC(const uint8_t* data, uint8_t length);
++  uint8_t writeAbort(const uint8_t* data, uint8_t length);
+ 
+   void setStart(bool start);
+   void setCal(bool start);
+@@ -62,7 +59,7 @@
+   void setColorCode(uint8_t colorCode);
+ 
+ private:
+-  CRingBuffer<uint8_t>                        m_fifo[2U];
++  CSerialRB                        m_fifo[2U];
+   arm_fir_interpolate_instance_q15 m_modFilter;
+   q15_t                            m_modState[16U];    // blockSize + phaseLength - 1, 4 + 9 - 1 plus some spare
+   DMRTXSTATE                       m_state;
+@@ -86,5 +83,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DStarDefines.h	2025-11-16 19:25:50.733622729 +0000
++++ ././DStarDefines.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2015,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2015 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -19,50 +19,30 @@
+ #if !defined(DSTARDEFINES_H)
+ #define  DSTARDEFINES_H
+ 
+-const unsigned int DSTAR_RADIO_SYMBOL_LENGTH = 5U;      // At 24 kHz sample rate
++const unsigned int DSTAR_RADIO_BIT_LENGTH = 5U;      // At 24 kHz sample rate
+ 
+-const unsigned int DSTAR_HEADER_LENGTH_BYTES   = 41U;
++const unsigned int DSTAR_HEADER_LENGTH_BYTES = 41U;
++const unsigned int DSTAR_HEADER_LENGTH_BITS  = DSTAR_HEADER_LENGTH_BYTES * 8U;
+ 
+-const unsigned int DSTAR_FEC_SECTION_LENGTH_BYTES   = 83U;
+-const unsigned int DSTAR_FEC_SECTION_LENGTH_SYMBOLS = 660U;
+-const unsigned int DSTAR_FEC_SECTION_LENGTH_SAMPLES = DSTAR_FEC_SECTION_LENGTH_SYMBOLS * DSTAR_RADIO_SYMBOL_LENGTH;
++const unsigned int DSTAR_FEC_SECTION_LENGTH_BYTES = 83U;
++const unsigned int DSTAR_FEC_SECTION_LENGTH_BITS  = 660U;
+ 
+-const unsigned int DSTAR_DATA_LENGTH_BYTES   = 12U;
+-const unsigned int DSTAR_DATA_LENGTH_SYMBOLS = DSTAR_DATA_LENGTH_BYTES * 8U;
+-const unsigned int DSTAR_DATA_LENGTH_SAMPLES = DSTAR_DATA_LENGTH_SYMBOLS * DSTAR_RADIO_SYMBOL_LENGTH;
++const unsigned int DSTAR_DATA_LENGTH_BYTES = 12U;
++const unsigned int DSTAR_DATA_LENGTH_BITS  = DSTAR_DATA_LENGTH_BYTES * 8U;
+ 
+-const unsigned int DSTAR_END_SYNC_LENGTH_BYTES = 6U;
+-const unsigned int DSTAR_END_SYNC_LENGTH_BITS  = DSTAR_END_SYNC_LENGTH_BYTES * 8U;
++const uint8_t      DSTAR_EOT_BYTES[] = {0x55, 0x55, 0x55, 0x55, 0xC8, 0x7A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
++const unsigned int DSTAR_EOT_LENGTH_BYTES = 6U;
++const unsigned int DSTAR_EOT_LENGTH_BITS  = DSTAR_EOT_LENGTH_BYTES * 8U;
+ 
+-const unsigned int DSTAR_FRAME_SYNC_LENGTH_BYTES   = 3U;
+-const unsigned int DSTAR_FRAME_SYNC_LENGTH_SYMBOLS = DSTAR_FRAME_SYNC_LENGTH_BYTES * 8U;
+-const unsigned int DSTAR_FRAME_SYNC_LENGTH_SAMPLES = DSTAR_FRAME_SYNC_LENGTH_SYMBOLS * DSTAR_RADIO_SYMBOL_LENGTH;
++const uint8_t      DSTAR_DATA_SYNC_LENGTH_BYTES = 3U;
++const uint8_t      DSTAR_DATA_SYNC_LENGTH_BITS  = DSTAR_DATA_SYNC_LENGTH_BYTES * 8U;
+ 
+-const unsigned int DSTAR_DATA_SYNC_LENGTH_BYTES   = 3U;
+-const unsigned int DSTAR_DATA_SYNC_LENGTH_SYMBOLS = DSTAR_DATA_SYNC_LENGTH_BYTES * 8U;
+-const unsigned int DSTAR_DATA_SYNC_LENGTH_SAMPLES = DSTAR_DATA_SYNC_LENGTH_SYMBOLS * DSTAR_RADIO_SYMBOL_LENGTH;
++const uint8_t      DSTAR_DATA_SYNC_BYTES[] = {0x9E, 0x8D, 0x32, 0x88, 0x26, 0x1A, 0x3F, 0x61, 0xE8, 0x55, 0x2D, 0x16};
+ 
+-const uint8_t DSTAR_DATA_SYNC_BYTES[] = {0x9E, 0x8D, 0x32, 0x88, 0x26, 0x1A, 0x3F, 0x61, 0xE8, 0x55, 0x2D, 0x16};
++const uint8_t      DSTAR_SLOW_DATA_TYPE_TEXT   = 0x40U;
++const uint8_t      DSTAR_SLOW_DATA_TYPE_HEADER = 0x50U;
+ 
+-// D-Star bit order version of 0x55 0x6E 0x0A
+-const uint32_t DSTAR_FRAME_SYNC_DATA = 0x00557650U;
+-const uint32_t DSTAR_FRAME_SYNC_MASK = 0x00FFFFFFU;
+-const bool     DSTAR_FRAME_SYNC_SYMBOLS[] = {false, true, false, true, false, true, false, true, false, true, true, true, false, true, true, false, false, true, false, true, false, false, false, false};
+-
+-// D-Star bit order version of 0x55 0x2D 0x16
+-const uint32_t DSTAR_DATA_SYNC_DATA = 0x00AAB468U;
+-const uint32_t DSTAR_DATA_SYNC_MASK = 0x00FFFFFFU;
+-const bool     DSTAR_DATA_SYNC_SYMBOLS[] = {true, false, true, false, true, false, true, false, true, false, true, true, false, true, false, false, false, true, true, false, true, false, false, false};
+-
+-// D-Star bit order version of 0x55 0x55 0xC8 0x7A
+-const uint32_t DSTAR_END_SYNC_DATA = 0xAAAA135EU;
+-const uint32_t DSTAR_END_SYNC_MASK = 0xFFFFFFFFU;
+-const uint8_t  DSTAR_END_SYNC_BYTES[] = {0x55, 0x55, 0x55, 0x55, 0xC8, 0x7A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+-
+-const uint8_t  DSTAR_SLOW_DATA_TYPE_TEXT   = 0x40U;
+-const uint8_t  DSTAR_SLOW_DATA_TYPE_HEADER = 0x50U;
+-
+-const uint8_t  DSTAR_SCRAMBLER_BYTES[] = {0x70U, 0x4FU, 0x93U};
++const uint8_t      DSTAR_SCRAMBLER_BYTES[] = {0x70U, 0x4FU, 0x93U};
+ 
+ #endif
+ 
+--- /tmp/upstream-mmdvm/./DStarRX.cpp	2025-11-16 19:25:50.733622729 +0000
++++ ././DStarRX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2017 by Andy Uribe CA6JAU
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -18,28 +18,31 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DSTAR)
+-
+ #include "Globals.h"
+ #include "DStarRX.h"
+ #include "Utils.h"
+ 
+-const unsigned int MAX_FRAMES = 150U;
++const unsigned int BUFFER_LENGTH = 200U;
++
++const uint32_t PLLMAX = 0x10000U;
++const uint32_t PLLINC = PLLMAX / DSTAR_RADIO_BIT_LENGTH;
++const uint32_t INC    = PLLINC / 32U;
++
++const unsigned int MAX_SYNC_BITS = 100U * DSTAR_DATA_LENGTH_BITS;
+ 
+ // D-Star bit order version of 0x55 0x55 0x6E 0x0A
+-const uint64_t FRAME_SYNC_DATA = 0x0000000000557650U;
+-const uint64_t FRAME_SYNC_MASK = 0x0000000000FFFFFFU;
++const uint32_t FRAME_SYNC_DATA = 0x00557650U;
++const uint32_t FRAME_SYNC_MASK = 0x00FFFFFFU;
+ const uint8_t  FRAME_SYNC_ERRS = 2U;
+ 
+ // D-Star bit order version of 0x55 0x2D 0x16
+-const uint64_t DATA_SYNC_DATA = 0x0000000000AAB468U;
+-const uint64_t DATA_SYNC_MASK = 0x0000000000FFFFFFU;
++const uint32_t DATA_SYNC_DATA = 0x00AAB468U;
++const uint32_t DATA_SYNC_MASK = 0x00FFFFFFU;
+ const uint8_t  DATA_SYNC_ERRS = 2U;
+ 
+ // D-Star bit order version of 0x55 0x55 0xC8 0x7A
+-const uint64_t END_SYNC_DATA = 0x0000AAAAAAAA135EU;
+-const uint64_t END_SYNC_MASK = 0x0000FFFFFFFFFFFFU;
++const uint32_t END_SYNC_DATA = 0xAAAA135EU;
++const uint32_t END_SYNC_MASK = 0xFFFFFFFFU;
+ const uint8_t  END_SYNC_ERRS = 1U;
+ 
+ const uint8_t BIT_MASK_TABLE0[] = {0x7FU, 0xBFU, 0xDFU, 0xEFU, 0xF7U, 0xFBU, 0xFDU, 0xFEU};
+@@ -234,24 +237,14 @@
+   0xf78fU, 0xe606U, 0xd49dU, 0xc514U, 0xb1abU, 0xa022U, 0x92b9U, 0x8330U,
+   0x7bc7U, 0x6a4eU, 0x58d5U, 0x495cU, 0x3de3U, 0x2c6aU, 0x1ef1U, 0x0f78U};
+ 
+-const uint16_t NOENDPTR = 9999U;
+-
+ CDStarRX::CDStarRX() :
++m_pll(0U),
++m_prev(false),
+ m_rxState(DSRXS_NONE),
+-m_bitBuffer(),
+-m_headerBuffer(),
+-m_dataBuffer(),
+-m_bitPtr(0U),
+-m_headerPtr(0U),
+-m_dataPtr(0U),
+-m_startPtr(NOENDPTR),
+-m_syncPtr(NOENDPTR),
+-m_minSyncPtr(NOENDPTR),
+-m_maxSyncPtr(NOENDPTR),
+-m_maxFrameCorr(0),
+-m_maxDataCorr(0),
+-m_frameCount(0U),
+-m_countdown(0U),
++m_patternBuffer(0x00U),
++m_rxBuffer(),
++m_rxBufferBits(0U),
++m_dataBits(0U),
+ m_mar(0U),
+ m_pathMetric(),
+ m_pathMemory0(),
+@@ -266,20 +259,14 @@
+ 
+ void CDStarRX::reset()
+ {
+-  m_rxState      = DSRXS_NONE;
+-  m_headerPtr    = 0U;
+-  m_dataPtr      = 0U;
+-  m_bitPtr       = 0U;
+-  m_maxFrameCorr = 0;
+-  m_maxDataCorr  = 0;
+-  m_startPtr     = NOENDPTR;
+-  m_syncPtr      = NOENDPTR;
+-  m_minSyncPtr   = NOENDPTR;
+-  m_maxSyncPtr   = NOENDPTR;
+-  m_frameCount   = 0U;
+-  m_countdown    = 0U;
+-  m_rssiAccum    = 0U;
+-  m_rssiCount    = 0U;
++  m_pll           = 0U;
++  m_prev          = false;
++  m_rxState       = DSRXS_NONE;
++  m_patternBuffer = 0x00U;
++  m_rxBufferBits  = 0U;
++  m_dataBits      = 0U;
++  m_rssiAccum     = 0U;
++  m_rssiCount     = 0U;
+ }
+ 
+ void CDStarRX::samples(const q15_t* samples, const uint16_t* rssi, uint8_t length)
+@@ -288,117 +275,125 @@
+     m_rssiAccum += rssi[i];
+     m_rssiCount++;
+ 
+-    q15_t sample = samples[i];
++    bool bit = samples[i] < 0;
+ 
+-    m_bitBuffer[m_bitPtr] <<= 1;
+-    if (sample < 0)
+-      m_bitBuffer[m_bitPtr] |= 0x01U;
++    if (bit != m_prev) {
++      if (m_pll < (PLLMAX / 2U))
++        m_pll += INC;
++      else
++        m_pll -= INC;
++    }
+ 
+-    m_dataBuffer[m_dataPtr] = sample;
++    m_prev = bit;
+ 
+-    switch (m_rxState) {
+-      case DSRXS_HEADER:
+-        processHeader(sample);
+-        break;
+-      case DSRXS_DATA:
+-        processData();
+-        break;
+-      default:
+-        processNone(sample);
+-        break;
+-    }
++    m_pll += PLLINC;
+ 
+-    m_dataPtr++;
+-    if (m_dataPtr >= DSTAR_DATA_LENGTH_SAMPLES)
+-      m_dataPtr = 0U;
++    if (m_pll >= PLLMAX) {
++      m_pll -= PLLMAX;
+ 
+-    m_bitPtr++;
+-    if (m_bitPtr >= DSTAR_RADIO_SYMBOL_LENGTH)
+-      m_bitPtr = 0U;
++      switch (m_rxState) {
++        case DSRXS_NONE:
++          processNone(bit);
++          break;
++        case DSRXS_HEADER:
++          processHeader(bit);
++          break;
++        case DSRXS_DATA:
++          processData(bit);
++          break;
++        default:
++          break;
++      }
++    }
+   }
+ }
+ 
+-void CDStarRX::processNone(q15_t sample)
++void CDStarRX::processNone(bool bit)
+ {
++  m_patternBuffer <<= 1;
++  if (bit)
++    m_patternBuffer |= 0x01U;
++
+   // Fuzzy matching of the frame sync sequence
+-  bool ret = correlateFrameSync();
+-  if (ret) {
+-    m_countdown = 5U;
++  if (countBits32((m_patternBuffer & FRAME_SYNC_MASK) ^ FRAME_SYNC_DATA) <= FRAME_SYNC_ERRS) {
++    DEBUG1("DStarRX: found frame sync in None");
+ 
+-    m_headerBuffer[m_headerPtr] = sample;
+-    m_headerPtr++;
++    ::memset(m_rxBuffer, 0x00U, DSTAR_FEC_SECTION_LENGTH_BYTES);
++    m_rxBufferBits = 0U;
+ 
+     m_rssiAccum = 0U;
+     m_rssiCount = 0U;
+ 
+     m_rxState = DSRXS_HEADER;
+-
+     return;
+   }
+ 
+-  // Fuzzy matching of the data sync bit sequence
+-  ret = correlateDataSync();
+-  if (ret) {
++  // Exact matching of the data sync bit sequence
++  if (countBits32((m_patternBuffer & DATA_SYNC_MASK) ^ DATA_SYNC_DATA) == 0U) {
+     DEBUG1("DStarRX: found data sync in None");
+ 
+     io.setDecode(true);
+     io.setADCDetection(true);
+ 
+-    m_rxState = DSRXS_DATA;
++    // Suppress RSSI on the dummy sync message
++    m_rssiAccum = 0U;
++    m_rssiCount = 0U;
++
++    ::memcpy(m_rxBuffer, DSTAR_DATA_SYNC_BYTES, DSTAR_DATA_LENGTH_BYTES);
++    writeRSSIData(m_rxBuffer);
++
++    ::memset(m_rxBuffer, 0x00U, DSTAR_DATA_LENGTH_BYTES + 2U);
++    m_rxBufferBits = 0U;
++
++    m_dataBits  = MAX_SYNC_BITS;
++    m_rxState   = DSRXS_DATA;
++    return;
+   }
+ }
+ 
+-void CDStarRX::processHeader(q15_t sample)
++void CDStarRX::processHeader(bool bit)
+ {
+-  if (m_countdown > 0U) {
+-    correlateFrameSync();
+-    m_countdown--;
+-  }
++  m_patternBuffer <<= 1;
++  if (bit)
++    m_patternBuffer |= 0x01U;
+ 
+-  m_headerBuffer[m_headerPtr] = sample;
+-  m_headerPtr++;
++  WRITE_BIT2(m_rxBuffer, m_rxBufferBits, bit);
++  m_rxBufferBits++;
+ 
+   // A full FEC header
+-  if (m_headerPtr == (DSTAR_FEC_SECTION_LENGTH_SAMPLES + DSTAR_RADIO_SYMBOL_LENGTH)) {
+-    uint8_t buffer[DSTAR_FEC_SECTION_LENGTH_BYTES];
+-    samplesToBits(m_headerBuffer, DSTAR_RADIO_SYMBOL_LENGTH, DSTAR_FEC_SECTION_LENGTH_SYMBOLS, buffer, DSTAR_FEC_SECTION_LENGTH_SAMPLES);
+-
+-    // Process the scrambling, interleaving and FEC, then return true if the chcksum was correct
+-    uint8_t header[DSTAR_HEADER_LENGTH_BYTES];
+-    bool ok = rxHeader(buffer, header);
+-    if (!ok) {
+-      // The checksum failed, return to looking for syncs
+-      m_rxState = DSRXS_NONE;
+-      m_maxFrameCorr = 0;
+-      m_maxDataCorr  = 0;
+-    } else {
++  if (m_rxBufferBits == DSTAR_FEC_SECTION_LENGTH_BITS) {
++    // Process the scrambling, interleaving and FEC, then return if the chcksum was correct
++    unsigned char header[DSTAR_HEADER_LENGTH_BYTES];
++    bool ok = rxHeader(m_rxBuffer, header);
++    if (ok) {
+       io.setDecode(true);
+       io.setADCDetection(true);
+ 
+       writeRSSIHeader(header);
+-    }
+-  }
+-
+-  // Ready to start the first data section
+-  if (m_headerPtr == (DSTAR_FEC_SECTION_LENGTH_SAMPLES + 2U * DSTAR_RADIO_SYMBOL_LENGTH)) {
+-    m_frameCount = 0U;
+-    m_dataPtr    = 0U;
+ 
+-    m_startPtr   = 476U;
+-    m_syncPtr    = 471U;
+-    m_maxSyncPtr = 472U;
+-    m_minSyncPtr = 470U;
++      ::memset(m_rxBuffer, 0x00U, DSTAR_DATA_LENGTH_BYTES + 2U);
++      m_rxBufferBits = 0U;
+ 
+-    DEBUG5("DStarRX: calc start/sync/max/min", m_startPtr, m_syncPtr, m_maxSyncPtr, m_minSyncPtr);
+-
+-    m_rxState = DSRXS_DATA;
++      m_rxState  = DSRXS_DATA;
++      m_dataBits = MAX_SYNC_BITS;
++    } else {
++      // The checksum failed, return to looking for syncs
++      m_rxState = DSRXS_NONE;
++    }
+   }
+ }
+ 
+-void CDStarRX::processData()
++void CDStarRX::processData(bool bit)
+ {
++  m_patternBuffer <<= 1;
++  if (bit)
++    m_patternBuffer |= 0x01U;
++
++  WRITE_BIT2(m_rxBuffer, m_rxBufferBits, bit);
++  m_rxBufferBits++;
++
+   // Fuzzy matching of the end frame sequences
+-  if (countBits64((m_bitBuffer[m_bitPtr] & DSTAR_END_SYNC_MASK) ^ DSTAR_END_SYNC_DATA) <= END_SYNC_ERRS) {
++  if (countBits32((m_patternBuffer & END_SYNC_MASK) ^ END_SYNC_DATA) <= END_SYNC_ERRS) {
+     DEBUG1("DStarRX: Found end sync in Data");
+ 
+     io.setDecode(false);
+@@ -406,24 +401,35 @@
+ 
+     serial.writeDStarEOT();
+ 
+-    m_maxFrameCorr = 0;
+-    m_maxDataCorr  = 0;
+-
+     m_rxState = DSRXS_NONE;
+     return;
+   }
+ 
+   // Fuzzy matching of the data sync bit sequence
+-  if (m_minSyncPtr < m_maxSyncPtr) {
+-    if (m_dataPtr >= m_minSyncPtr && m_dataPtr <= m_maxSyncPtr)
+-      correlateDataSync();
+-  } else {
+-    if (m_dataPtr >= m_minSyncPtr || m_dataPtr <= m_maxSyncPtr)
+-      correlateDataSync();
++  bool syncSeen = false;
++  if (m_rxBufferBits >= (DSTAR_DATA_LENGTH_BITS - 3U)) {
++    if (countBits32((m_patternBuffer & DATA_SYNC_MASK) ^ DATA_SYNC_DATA) <= DATA_SYNC_ERRS) {
++      m_rxBufferBits = DSTAR_DATA_LENGTH_BITS;
++      m_dataBits     = MAX_SYNC_BITS;
++      syncSeen       = true;
++    }
+   }
+ 
+-  // We've not seen a data sync for too long, signal RXLOST and change to RX_NONE
+-  if (m_frameCount >= MAX_FRAMES) {
++  // Check to see if the sync is arriving late
++  if (m_rxBufferBits == DSTAR_DATA_LENGTH_BITS && !syncSeen) {
++    for (uint8_t i = 1U; i <= 3U; i++) {
++      uint32_t syncMask = DATA_SYNC_MASK >> i;
++      uint32_t syncData = DATA_SYNC_DATA >> i;
++      if (countBits32((m_patternBuffer & syncMask) ^ syncData) <= DATA_SYNC_ERRS) {
++        m_rxBufferBits -= i;
++        break;
++      }
++    }
++  }
++
++  m_dataBits--;
++
++  if (m_dataBits == 0U) {
+     DEBUG1("DStarRX: data sync timed out, lost lock");
+ 
+     io.setDecode(false);
+@@ -431,35 +437,24 @@
+ 
+     serial.writeDStarLost();
+ 
+-    m_maxFrameCorr = 0;
+-    m_maxDataCorr  = 0;
+-
+     m_rxState = DSRXS_NONE;
+     return;
+   }
+ 
+-  // Send a data frame to the host if the required number of bits have been received
+-  if (m_dataPtr == m_maxSyncPtr) {
+-    uint8_t buffer[DSTAR_DATA_LENGTH_BYTES + 2U];
+-    samplesToBits(m_dataBuffer, m_startPtr, DSTAR_DATA_LENGTH_SYMBOLS, buffer, DSTAR_DATA_LENGTH_SAMPLES);
+-
+-    if ((m_frameCount % 21U) == 0U) {
+-      if (m_frameCount == 0U) {
+-        buffer[9U]  = DSTAR_DATA_SYNC_BYTES[9U];
+-        buffer[10U] = DSTAR_DATA_SYNC_BYTES[10U];
+-        buffer[11U] = DSTAR_DATA_SYNC_BYTES[11U];
+-        DEBUG5("DStarRX: found start/sync/max/min", m_startPtr, m_syncPtr, m_maxSyncPtr, m_minSyncPtr);
+-      }
+-
+-      writeRSSIData(buffer);
++  // Send a data frame to the host if the required number of bits have been received, or if a data sync has been seen
++  if (m_rxBufferBits == DSTAR_DATA_LENGTH_BITS) {
++    if (syncSeen) {
++      m_rxBuffer[9U]  = DSTAR_DATA_SYNC_BYTES[9U];
++      m_rxBuffer[10U] = DSTAR_DATA_SYNC_BYTES[10U];
++      m_rxBuffer[11U] = DSTAR_DATA_SYNC_BYTES[11U];
++	    writeRSSIData(m_rxBuffer);
+     } else {
+-      serial.writeDStarData(buffer, DSTAR_DATA_LENGTH_BYTES);
+-    }
++	    serial.writeDStarData(m_rxBuffer, DSTAR_DATA_LENGTH_BYTES);
++	  }
+ 
+-    m_frameCount++;
+-
+-    m_maxFrameCorr = 0;
+-    m_maxDataCorr  = 0;
++    // Start the next frame
++    ::memset(m_rxBuffer, 0x00U, DSTAR_DATA_LENGTH_BYTES + 2U);
++    m_rxBufferBits = 0U;
+   }
+ }
+ 
+@@ -505,105 +500,6 @@
+   m_rssiCount = 0U;
+ }
+ 
+-bool CDStarRX::correlateFrameSync()
+-{
+-  if (countBits64((m_bitBuffer[m_bitPtr] & DSTAR_FRAME_SYNC_MASK) ^ DSTAR_FRAME_SYNC_DATA) <= FRAME_SYNC_ERRS) {
+-    uint16_t ptr = m_dataPtr + DSTAR_DATA_LENGTH_SAMPLES - DSTAR_FRAME_SYNC_LENGTH_SAMPLES + DSTAR_RADIO_SYMBOL_LENGTH;
+-    if (ptr >= DSTAR_DATA_LENGTH_SAMPLES)
+-      ptr -= DSTAR_DATA_LENGTH_SAMPLES;
+-
+-    q31_t corr = 0;
+-
+-    for (uint8_t i = 0U; i < DSTAR_FRAME_SYNC_LENGTH_SYMBOLS; i++) {
+-      q15_t val = m_dataBuffer[ptr];
+-
+-      if (DSTAR_FRAME_SYNC_SYMBOLS[i])
+-        corr -= val;
+-      else
+-        corr += val;
+-
+-      ptr += DSTAR_RADIO_SYMBOL_LENGTH;
+-      if (ptr >= DSTAR_DATA_LENGTH_SAMPLES)
+-        ptr -= DSTAR_DATA_LENGTH_SAMPLES;
+-    }
+-
+-    if (corr > m_maxFrameCorr) {
+-      m_maxFrameCorr = corr;
+-      m_headerPtr    = 0U;
+-      return true;
+-    }
+-  }
+-
+-  return false;
+-}
+-
+-bool CDStarRX::correlateDataSync()
+-{
+-  uint8_t maxErrs = 0U;
+-  if (m_rxState == DSRXS_DATA)
+-    maxErrs = DATA_SYNC_ERRS;
+-
+-  if (countBits64((m_bitBuffer[m_bitPtr] & DSTAR_DATA_SYNC_MASK) ^ DSTAR_DATA_SYNC_DATA) <= maxErrs) {
+-    uint16_t ptr = m_dataPtr + DSTAR_DATA_LENGTH_SAMPLES - DSTAR_DATA_SYNC_LENGTH_SAMPLES + DSTAR_RADIO_SYMBOL_LENGTH;
+-    if (ptr >= DSTAR_DATA_LENGTH_SAMPLES)
+-      ptr -= DSTAR_DATA_LENGTH_SAMPLES;
+-
+-    q31_t corr = 0;
+-
+-    for (uint8_t i = 0U; i < DSTAR_DATA_SYNC_LENGTH_SYMBOLS; i++) {
+-      q15_t val = m_dataBuffer[ptr];
+-
+-      if (DSTAR_DATA_SYNC_SYMBOLS[i])
+-        corr -= val;
+-      else
+-        corr += val;
+-
+-      ptr += DSTAR_RADIO_SYMBOL_LENGTH;
+-      if (ptr >= DSTAR_DATA_LENGTH_SAMPLES)
+-        ptr -= DSTAR_DATA_LENGTH_SAMPLES;
+-    }
+-
+-    if (corr > m_maxDataCorr) {
+-      m_maxDataCorr = corr;
+-      m_frameCount  = 0U;
+-
+-      m_syncPtr    = m_dataPtr;
+-
+-      m_startPtr   = m_dataPtr + DSTAR_RADIO_SYMBOL_LENGTH;
+-      if (m_startPtr >= DSTAR_DATA_LENGTH_SAMPLES)
+-        m_startPtr -= DSTAR_DATA_LENGTH_SAMPLES;
+-
+-      m_maxSyncPtr = m_syncPtr + 1U;
+-      if (m_maxSyncPtr >= DSTAR_DATA_LENGTH_SAMPLES)
+-        m_maxSyncPtr -= DSTAR_DATA_LENGTH_SAMPLES;
+-
+-      m_minSyncPtr = m_syncPtr + DSTAR_DATA_LENGTH_SAMPLES - 1U;
+-      if (m_minSyncPtr >= DSTAR_DATA_LENGTH_SAMPLES)
+-        m_minSyncPtr -= DSTAR_DATA_LENGTH_SAMPLES;
+-
+-      return true;
+-    }
+-  }
+-
+-  return false;
+-}
+-
+-void CDStarRX::samplesToBits(const q15_t* inBuffer, uint16_t start, uint16_t count, uint8_t* outBuffer, uint16_t limit)
+-{
+-  for (uint16_t i = 0U; i < count; i++) {
+-    q15_t sample = inBuffer[start];
+-
+-    if (sample < 0)
+-      WRITE_BIT2(outBuffer, i, true);
+-    else
+-      WRITE_BIT2(outBuffer, i, false);
+-
+-    start += DSTAR_RADIO_SYMBOL_LENGTH;
+-    if (start >= limit)
+-      start -= limit;
+-  }
+-}
+-
+ bool CDStarRX::rxHeader(uint8_t* in, uint8_t* out)
+ {
+   int i;
+@@ -819,6 +715,3 @@
+ 
+   return crc8[0U] == header[DSTAR_HEADER_LENGTH_BYTES - 2U] && crc8[1U] == header[DSTAR_HEADER_LENGTH_BYTES - 1U];
+ }
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DStarRX.h	2025-11-16 19:25:50.733622729 +0000
++++ ././DStarRX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,13 +16,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DSTAR)
+-
+ #if !defined(DSTARRX_H)
+ #define  DSTARRX_H
+ 
++#include "Config.h"
+ #include "DStarDefines.h"
+ 
+ enum DSRX_STATE {
+@@ -40,21 +37,13 @@
+   void reset();
+ 
+ private:
++  uint32_t     m_pll;
++  bool         m_prev;
+   DSRX_STATE   m_rxState;
+-  uint64_t     m_bitBuffer[DSTAR_RADIO_SYMBOL_LENGTH];
+-  q15_t        m_headerBuffer[DSTAR_FEC_SECTION_LENGTH_SAMPLES + 2U * DSTAR_RADIO_SYMBOL_LENGTH];
+-  q15_t        m_dataBuffer[DSTAR_DATA_LENGTH_SAMPLES];
+-  uint16_t     m_bitPtr;
+-  uint16_t     m_headerPtr;
+-  uint16_t     m_dataPtr;
+-  uint16_t     m_startPtr;
+-  uint16_t     m_syncPtr;
+-  uint16_t     m_minSyncPtr;
+-  uint16_t     m_maxSyncPtr;
+-  q31_t        m_maxFrameCorr;
+-  q31_t        m_maxDataCorr;
+-  uint16_t     m_frameCount;
+-  uint8_t      m_countdown;
++  uint32_t     m_patternBuffer;
++  uint8_t      m_rxBuffer[100U];
++  unsigned int m_rxBufferBits;
++  unsigned int m_dataBits;
+   unsigned int m_mar;
+   int          m_pathMetric[4U];
+   unsigned int m_pathMemory0[42U];
+@@ -65,12 +54,9 @@
+   uint32_t     m_rssiAccum;
+   uint16_t     m_rssiCount;
+   
+-  void    processNone(q15_t sample);
+-  void    processHeader(q15_t sample);
+-  void    processData();
+-  bool    correlateFrameSync();
+-  bool    correlateDataSync();
+-  void    samplesToBits(const q15_t* inBuffer, uint16_t start, uint16_t count, uint8_t* outBuffer, uint16_t limit);
++  void    processNone(bool bit);
++  void    processHeader(bool bit);
++  void    processData(bool bit);
+   void    writeRSSIHeader(unsigned char* header);
+   void    writeRSSIData(unsigned char* data);
+   bool    rxHeader(uint8_t* in, uint8_t* out);
+@@ -82,5 +68,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DStarTX.cpp	2025-11-16 19:25:50.734622744 +0000
++++ ././DStarTX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2017 by Andy Uribe CA6JAU
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -18,9 +18,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_DSTAR)
+-
+ #include "Globals.h"
+ #include "DStarTX.h"
+ 
+@@ -201,7 +198,7 @@
+ {
+   ::memset(m_modState, 0x00U, 20U * sizeof(q15_t));
+ 
+-  m_modFilter.L           = DSTAR_RADIO_SYMBOL_LENGTH;
++  m_modFilter.L           = DSTAR_RADIO_BIT_LENGTH;
+   m_modFilter.phaseLength = GAUSSIAN_0_35_FILTER_PHASE_LEN;
+   m_modFilter.pCoeffs     = GAUSSIAN_0_35_FILTER;
+   m_modFilter.pState      = m_modState;
+@@ -220,12 +217,11 @@
+         m_poBuffer[m_poLen++] = BIT_SYNC;
+     } else {
+       // Pop the type byte off
+-      uint8_t dummy;
+-      m_buffer.get(dummy);
++      m_buffer.get();
+ 
+       uint8_t header[DSTAR_HEADER_LENGTH_BYTES];
+       for (uint8_t i = 0U; i < DSTAR_HEADER_LENGTH_BYTES; i++)
+-        m_buffer.get(header[i]);
++        header[i] = m_buffer.get();
+ 
+       uint8_t buffer[86U];
+       txHeader(header, buffer + 2U);
+@@ -243,23 +239,21 @@
+  
+   if (type == DSTAR_DATA && m_poLen == 0U) {
+     // Pop the type byte off
+-    uint8_t dummy;
+-    m_buffer.get(dummy);
++    m_buffer.get();
+ 
+     for (uint8_t i = 0U; i < DSTAR_DATA_LENGTH_BYTES; i++)
+-      m_buffer.get(m_poBuffer[m_poLen++]);
++      m_poBuffer[m_poLen++] = m_buffer.get();
+ 
+     m_poPtr = 0U;
+   }
+ 
+   if (type == DSTAR_EOT && m_poLen == 0U) {
+     // Pop the type byte off
+-    uint8_t dummy;
+-    m_buffer.get(dummy);
++    m_buffer.get();
+ 
+     for (uint8_t j = 0U; j < 3U; j++) {
+-      for (uint8_t i = 0U; i < DSTAR_END_SYNC_LENGTH_BYTES; i++)
+-        m_poBuffer[m_poLen++] = DSTAR_END_SYNC_BYTES[i];
++      for (uint8_t i = 0U; i < DSTAR_EOT_LENGTH_BYTES; i++)
++        m_poBuffer[m_poLen++] = DSTAR_EOT_BYTES[i];
+     }
+      
+     m_poPtr = 0U;
+@@ -268,11 +262,11 @@
+   if (m_poLen > 0U) {
+     uint16_t space = io.getSpace();
+     
+-    while (space > (8U * DSTAR_RADIO_SYMBOL_LENGTH)) {
++    while (space > (8U * DSTAR_RADIO_BIT_LENGTH)) {
+       uint8_t c = m_poBuffer[m_poPtr++];
+       writeByte(c);
+ 
+-      space -= 8U * DSTAR_RADIO_SYMBOL_LENGTH;
++      space -= 8U * DSTAR_RADIO_BIT_LENGTH;
+       
+       if (m_poPtr >= m_poLen) {
+         m_poPtr = 0U;
+@@ -283,7 +277,7 @@
+   }
+ }
+ 
+-uint8_t CDStarTX::writeHeader(const uint8_t* header, uint16_t length)
++uint8_t CDStarTX::writeHeader(const uint8_t* header, uint8_t length)
+ {
+   if (length != DSTAR_HEADER_LENGTH_BYTES)
+     return 4U;
+@@ -302,7 +296,7 @@
+   return 0U;
+ }
+ 
+-uint8_t CDStarTX::writeData(const uint8_t* data, uint16_t length)
++uint8_t CDStarTX::writeData(const uint8_t* data, uint8_t length)
+ {
+   if (length != DSTAR_DATA_LENGTH_BYTES)
+     return 4U;
+@@ -394,7 +388,7 @@
+     if (i < 660U) {
+       if (d & 0x08U)
+         out[INTERLEAVE_TABLE_TX[i * 2U]] |= (0x01U << INTERLEAVE_TABLE_TX[i * 2U + 1U]);
+-      i++;
++        i++;
+ 
+       if (d & 0x04U)
+         out[INTERLEAVE_TABLE_TX[i * 2U]] |= (0x01U << INTERLEAVE_TABLE_TX[i * 2U + 1U]);
+@@ -418,7 +412,7 @@
+ void CDStarTX::writeByte(uint8_t c)
+ {
+   q15_t inBuffer[8U];
+-  q15_t outBuffer[DSTAR_RADIO_SYMBOL_LENGTH * 8U];
++  q15_t outBuffer[DSTAR_RADIO_BIT_LENGTH * 8U];
+ 
+   uint8_t mask = 0x01U;
+ 
+@@ -433,7 +427,7 @@
+ 
+   ::arm_fir_interpolate_q15(&m_modFilter, inBuffer, outBuffer, 8U);
+   
+-  io.write(STATE_DSTAR, outBuffer, DSTAR_RADIO_SYMBOL_LENGTH * 8U);
++  io.write(STATE_DSTAR, outBuffer, DSTAR_RADIO_BIT_LENGTH * 8U);
+ }
+ 
+ void CDStarTX::setTXDelay(uint8_t delay)
+@@ -449,5 +443,3 @@
+   return m_buffer.getSpace() / (DSTAR_DATA_LENGTH_BYTES + 1U);
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./DStarTX.h	2025-11-16 19:25:50.734622744 +0000
++++ ././DStarTX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,21 +16,19 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_DSTAR)
+-
+ #if !defined(DSTARTX_H)
+ #define  DSTARTX_H
+ 
+-#include "RingBuffer.h"
++#include "Config.h"
++
++#include "SerialRB.h"
+ 
+ class CDStarTX {
+ public:
+   CDStarTX();
+ 
+-  uint8_t writeHeader(const uint8_t* header, uint16_t length);
+-  uint8_t writeData(const uint8_t* data, uint16_t length);
++  uint8_t writeHeader(const uint8_t* header, uint8_t length);
++  uint8_t writeData(const uint8_t* data, uint8_t length);
+   uint8_t writeEOT();
+ 
+   void process();
+@@ -40,7 +38,7 @@
+   uint8_t getSpace() const;
+ 
+ private:
+-  CRingBuffer<uint8_t>             m_buffer;
++  CSerialRB                        m_buffer;
+   arm_fir_interpolate_instance_q15 m_modFilter;
+   q15_t                            m_modState[20U];    // blockSize + phaseLength - 1, 8 + 9 - 1 plus some spare
+   uint8_t                          m_poBuffer[600U];
+@@ -54,5 +52,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./Debug.h	2025-11-16 19:25:50.734622744 +0000
++++ ././Debug.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2021 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -21,13 +21,13 @@
+ 
+ #include "Config.h"
+ #include "Globals.h"
++#include "Log.h"
+ 
+-#define  DEBUG1(a)          serial.writeDebug((a))
+-#define  DEBUG2(a,b)        serial.writeDebug((a),(b))
+-#define  DEBUG3(a,b,c)      serial.writeDebug((a),(b),(c))
+-#define  DEBUG4(a,b,c,d)    serial.writeDebug((a),(b),(c),(d))
+-#define  DEBUG5(a,b,c,d,e)  serial.writeDebug((a),(b),(c),(d),(e))
+-#define  DEBUG_DUMP(a,b)    serial.writeDebugDump((a),(b))
++#define  DEBUG1(a)          LogDebug((a))
++#define  DEBUG2(a,b)        LogDebug((a),(b))
++#define  DEBUG3(a,b,c)      LogDebug((a),(b),(c))
++#define  DEBUG4(a,b,c,d)    LogDebug((a),(b),(c),(d))
++#define  DEBUG5(a,b,c,d,e)  LogDebug((a),(b),(c),(d),(e))
+ 
+ #endif
+ 
+--- /tmp/upstream-mmdvm/./Globals.h	2025-11-16 19:25:50.738622806 +0000
++++ ././Globals.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2018,2020,2021,2025 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017,2018 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -23,23 +23,32 @@
+ #include "stm32f4xx.h"
+ #elif defined(STM32F7XX)
+ #include "stm32f7xx.h"
++#elif defined(STM32F105xC)
++#include "stm32f1xx.h"
++#include "STM32Utils.h"
++#elif defined(RPI)
++#include <stdint.h>
++#include <cstddef>
++#include <cstring>
+ #else
+ #include <Arduino.h>
+-#undef PI //Undefine PI to get rid of annoying warning as it is also defined in arm_math.h.
+ #endif
+ 
+-#if defined(__SAM3X8E__)
++#if defined(__SAM3X8E__) || defined(STM32F105xC)
+ #define  ARM_MATH_CM3
++#include <arm_math.h>
+ #elif defined(STM32F7XX)
+ #define  ARM_MATH_CM7
++#include <arm_math.h>
+ #elif defined(STM32F4XX) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+ #define  ARM_MATH_CM4
++#include <arm_math.h>
++#elif defined(RPI)
++#include "arm_math_rpi.h"
+ #else
+ #error "Unknown processor type"
+ #endif
+ 
+-#include <arm_math.h>
+-
+ enum MMDVM_STATE {
+   STATE_IDLE      = 0,
+   STATE_DSTAR     = 1,
+@@ -47,8 +56,6 @@
+   STATE_YSF       = 3,
+   STATE_P25       = 4,
+   STATE_NXDN      = 5,
+-  STATE_POCSAG    = 6,
+-  STATE_FM        = 10,
+ 
+   // Dummy states start at 90
+   STATE_NXDNCAL1K = 91,
+@@ -59,15 +66,7 @@
+   STATE_RSSICAL   = 96,
+   STATE_CWID      = 97,
+   STATE_DMRCAL    = 98,
+-  STATE_DSTARCAL  = 99,
+-  STATE_INTCAL    = 100,
+-  STATE_POCSAGCAL = 101,
+-  STATE_FMCAL10K  = 102,
+-  STATE_FMCAL12K  = 103,
+-  STATE_FMCAL15K  = 104,
+-  STATE_FMCAL20K  = 105,
+-  STATE_FMCAL25K  = 106,
+-  STATE_FMCAL30K  = 107
++  STATE_DSTARCAL  = 99
+ };
+ 
+ #include "SerialPort.h"
+@@ -84,19 +83,15 @@
+ #include "P25TX.h"
+ #include "NXDNRX.h"
+ #include "NXDNTX.h"
+-#include "POCSAGTX.h"
+ #include "CalDStarRX.h"
+ #include "CalDStarTX.h"
+-#include "CalFM.h"
+ #include "CalDMR.h"
+ #include "CalP25.h"
+ #include "CalNXDN.h"
+-#include "CalPOCSAG.h"
+ #include "CalRSSI.h"
+ #include "CWIdTX.h"
+ #include "Debug.h"
+ #include "IO.h"
+-#include "FM.h"
+ 
+ const uint8_t  MARK_SLOT1 = 0x08U;
+ const uint8_t  MARK_SLOT2 = 0x04U;
+@@ -105,13 +100,7 @@
+ const uint16_t RX_BLOCK_SIZE = 2U;
+ 
+ const uint16_t TX_RINGBUFFER_SIZE = 500U;
+-const uint16_t RX_RINGBUFFER_SIZE = 600U;
+-
+-#if defined(__MK20DX256__)
+-const uint16_t TX_BUFFER_LEN = 2000U;
+-#else
+-const uint16_t TX_BUFFER_LEN = 4000U;
+-#endif
++const uint16_t RX_RINGBUFFER_SIZE = 9600U;
+ 
+ extern MMDVM_STATE m_modemState;
+ 
+@@ -120,8 +109,6 @@
+ extern bool m_ysfEnable;
+ extern bool m_p25Enable;
+ extern bool m_nxdnEnable;
+-extern bool m_pocsagEnable;
+-extern bool m_fmEnable;
+ 
+ extern bool m_duplex;
+ 
+@@ -131,15 +118,9 @@
+ extern CSerialPort serial;
+ extern CIO io;
+ 
+-#if defined(MODE_DSTAR)
+ extern CDStarRX dstarRX;
+ extern CDStarTX dstarTX;
+ 
+-extern CCalDStarRX calDStarRX;
+-extern CCalDStarTX calDStarTX;
+-#endif
+-
+-#if defined(MODE_DMR)
+ extern CDMRIdleRX dmrIdleRX;
+ extern CDMRRX dmrRX;
+ extern CDMRTX dmrTX;
+@@ -147,39 +128,21 @@
+ extern CDMRDMORX dmrDMORX;
+ extern CDMRDMOTX dmrDMOTX;
+ 
+-extern CCalDMR calDMR;
+-#endif
+-
+-#if defined(MODE_YSF)
+ extern CYSFRX ysfRX;
+ extern CYSFTX ysfTX;
+-#endif
+ 
+-#if defined(MODE_P25)
+ extern CP25RX p25RX;
+ extern CP25TX p25TX;
+ 
+-extern CCalP25 calP25;
+-#endif
+-
+-#if defined(MODE_NXDN)
+ extern CNXDNRX nxdnRX;
+ extern CNXDNTX nxdnTX;
+ 
+-extern CCalNXDN calNXDN;
+-#endif
+-
+-#if defined(MODE_POCSAG)
+-extern CPOCSAGTX  pocsagTX;
+-extern CCalPOCSAG calPOCSAG;
+-#endif
+-
+-#if defined(MODE_FM)
+-extern CFM    fm;
+-extern CCalFM calFM;
+-#endif
+-
+-extern CCalRSSI calRSSI;
++extern CCalDStarRX calDStarRX;
++extern CCalDStarTX calDStarTX;
++extern CCalDMR     calDMR;
++extern CCalP25     calP25;
++extern CCalNXDN    calNXDN;
++extern CCalRSSI    calRSSI;
+ 
+ extern CCWIdTX cwIdTX;
+ 
+--- /tmp/upstream-mmdvm/./IO.cpp	2025-11-16 19:25:50.738622806 +0000
++++ ././IO.cpp	2025-11-16 18:40:01.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2018,2020,2021,2025 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017,2018 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2015 by Jim Mclaughlin KI6ZUM
+  *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *
+@@ -22,26 +22,20 @@
+ #include "Globals.h"
+ #include "IO.h"
+ 
+-#if defined(USE_DCBLOCKER)
++#include "Log.h"
++
++#include <pthread.h>
++
+ // Generated using [b, a] = butter(1, 0.001) in MATLAB
+ static q31_t   DC_FILTER[] = {3367972, 0, 3367972, 0, 2140747704, 0}; // {b0, 0, b1, b2, -a1, -a2}
+ const uint32_t DC_FILTER_STAGES = 1U; // One Biquad stage
+-#endif
+ 
+-#if defined(MODE_DMR) || defined(MODE_YSF)
+ // Generated using rcosdesign(0.2, 8, 5, 'sqrt') in MATLAB
+ static q15_t RRC_0_2_FILTER[] = {401, 104, -340, -731, -847, -553, 112, 909, 1472, 1450, 683, -675, -2144, -3040, -2706, -770, 2667, 6995,
+                                  11237, 14331, 15464, 14331, 11237, 6995, 2667, -770, -2706, -3040, -2144, -675, 683, 1450, 1472, 909, 112,
+                                  -553, -847, -731, -340, 104, 401, 0};
+ const uint16_t RRC_0_2_FILTER_LEN = 42U;
+-#endif
+ 
+-#if defined(MODE_NXDN)
+-#if defined(USE_NXDN_BOXCAR)
+-// One symbol boxcar filter
+-static q15_t   BOXCAR10_FILTER[] = {6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000};
+-const uint16_t BOXCAR10_FILTER_LEN = 10U;
+-#else
+ // Generated using rcosdesign(0.2, 8, 10, 'sqrt') in MATLAB
+ static q15_t NXDN_0_2_FILTER[] = {284, 198, 73, -78, -240, -393, -517, -590, -599, -533, -391, -181, 79, 364, 643, 880, 1041, 1097, 1026, 819,
+                                   483, 39, -477, -1016, -1516, -1915, -2150, -2164, -1914, -1375, -545, 557, 1886, 3376, 4946, 6502, 7946, 9184,
+@@ -53,59 +47,35 @@
+ static q15_t NXDN_ISINC_FILTER[] = {790, -1085, -1073, -553, 747, 2341, 3156, 2152, -893, -4915, -7834, -7536, -3102, 4441, 12354, 17394, 17394,
+                                    12354, 4441, -3102, -7536, -7834, -4915, -893, 2152, 3156, 2341, 747, -553, -1073, -1085, 790};
+ const uint16_t NXDN_ISINC_FILTER_LEN = 32U;
+-#endif
+-#endif
+ 
+-#if defined(MODE_DSTAR)
+ // Generated using gaussfir(0.5, 4, 5) in MATLAB
+ static q15_t   GAUSSIAN_0_5_FILTER[] = {8, 104, 760, 3158, 7421, 9866, 7421, 3158, 760, 104, 8, 0};
+ const uint16_t GAUSSIAN_0_5_FILTER_LEN = 12U;
+-#endif
+ 
+-#if defined(MODE_P25)
+ // One symbol boxcar filter
+-static q15_t   BOXCAR5_FILTER[] = {12000, 12000, 12000, 12000, 12000, 0};
+-const uint16_t BOXCAR5_FILTER_LEN = 6U;
+-#endif
++static q15_t   BOXCAR_FILTER[] = {12000, 12000, 12000, 12000, 12000, 0};
++const uint16_t BOXCAR_FILTER_LEN = 6U;
+ 
+ const uint16_t DC_OFFSET = 2048U;
+ 
+ CIO::CIO() :
+ m_started(false),
++m_thread(),
+ m_rxBuffer(RX_RINGBUFFER_SIZE),
+ m_txBuffer(TX_RINGBUFFER_SIZE),
+ m_rssiBuffer(RX_RINGBUFFER_SIZE),
+-#if defined(USE_DCBLOCKER)
+ m_dcFilter(),
+ m_dcState(),
+-#endif
+-#if defined(MODE_DSTAR)
++m_rrcFilter(),
+ m_gaussianFilter(),
+-m_gaussianState(),
+-#endif
+-#if defined(MODE_DMR)
+-m_rrc02Filter1(),
+-m_rrc02State1(),
+-#endif
+-#if defined(MODE_YSF)
+-m_rrc02Filter2(),
+-m_rrc02State2(),
+-#endif
+-#if defined(MODE_P25)
+-m_boxcar5Filter(),
+-m_boxcar5State(),
+-#endif
+-#if defined(MODE_NXDN)
+-#if defined(USE_NXDN_BOXCAR)
+-m_boxcar10Filter(),
+-m_boxcar10State(),
+-#else
++m_boxcarFilter(),
+ m_nxdnFilter(),
+ m_nxdnISincFilter(),
++m_rrcState(),
++m_gaussianState(),
++m_boxcarState(),
+ m_nxdnState(),
+ m_nxdnISincState(),
+-#endif
+-#endif
+ m_pttInvert(false),
+ m_rxLevel(128 * 128),
+ m_cwIdTXLevel(128 * 128),
+@@ -114,11 +84,8 @@
+ m_ysfTXLevel(128 * 128),
+ m_p25TXLevel(128 * 128),
+ m_nxdnTXLevel(128 * 128),
+-m_pocsagTXLevel(128 * 128),
+-m_fmTXLevel(128 * 128),
+ m_rxDCOffset(DC_OFFSET),
+ m_txDCOffset(DC_OFFSET),
+-m_useCOSAsLockout(false),
+ m_ledCount(0U),
+ m_ledValue(true),
+ m_detect(false),
+@@ -126,53 +93,37 @@
+ m_dacOverflow(0U),
+ m_watchdog(0U),
+ m_lockout(false)
++#if !defined(STANDALONE_MODE)
++,m_zmqcontext(1),
++m_zmqsocket(m_zmqcontext, ZMQ_PUSH),
++m_zmqcontextRX(1),
++m_zmqsocketRX(m_zmqcontextRX, ZMQ_PULL)
++#endif
+ {
+-#if defined(USE_DCBLOCKER)
+-  ::memset(m_dcState, 0x00U, 4U * sizeof(q31_t));
++  ::memset(m_rrcState,      0x00U,  70U * sizeof(q15_t));
++  ::memset(m_gaussianState, 0x00U,  40U * sizeof(q15_t));
++  ::memset(m_boxcarState,   0x00U,  30U * sizeof(q15_t));
++  ::memset(m_nxdnState,     0x00U, 110U * sizeof(q15_t));
++  ::memset(m_nxdnISincState, 0x00U, 60U * sizeof(q15_t));
++  ::memset(m_dcState,       0x00U,   4U * sizeof(q31_t));
++
+   m_dcFilter.numStages = DC_FILTER_STAGES;
+   m_dcFilter.pState    = m_dcState;
+   m_dcFilter.pCoeffs   = DC_FILTER;
+   m_dcFilter.postShift = 0;
+-#endif
+ 
+-#if defined(MODE_DSTAR)
+-  ::memset(m_gaussianState, 0x00U, 40U * sizeof(q15_t));
++  m_rrcFilter.numTaps = RRC_0_2_FILTER_LEN;
++  m_rrcFilter.pState  = m_rrcState;
++  m_rrcFilter.pCoeffs = RRC_0_2_FILTER;
++
+   m_gaussianFilter.numTaps = GAUSSIAN_0_5_FILTER_LEN;
+   m_gaussianFilter.pState  = m_gaussianState;
+   m_gaussianFilter.pCoeffs = GAUSSIAN_0_5_FILTER;
+-#endif
+-
+-#if defined(MODE_DMR)
+-  ::memset(m_rrc02State1, 0x00U, 70U * sizeof(q15_t));
+-  m_rrc02Filter1.numTaps = RRC_0_2_FILTER_LEN;
+-  m_rrc02Filter1.pState  = m_rrc02State1;
+-  m_rrc02Filter1.pCoeffs = RRC_0_2_FILTER;
+-#endif
+-
+-#if defined(MODE_YSF)
+-  ::memset(m_rrc02State2, 0x00U, 70U * sizeof(q15_t));
+-  m_rrc02Filter2.numTaps = RRC_0_2_FILTER_LEN;
+-  m_rrc02Filter2.pState  = m_rrc02State2;
+-  m_rrc02Filter2.pCoeffs = RRC_0_2_FILTER;
+-#endif
+-
+-#if defined(MODE_P25)
+-  ::memset(m_boxcar5State, 0x00U, 30U * sizeof(q15_t));
+-  m_boxcar5Filter.numTaps = BOXCAR5_FILTER_LEN;
+-  m_boxcar5Filter.pState  = m_boxcar5State;
+-  m_boxcar5Filter.pCoeffs = BOXCAR5_FILTER;
+-#endif
+-
+-#if defined(MODE_NXDN)
+-#if defined(USE_NXDN_BOXCAR)
+-  ::memset(m_boxcar10State, 0x00U, 40U * sizeof(q15_t));
+-  m_boxcar10Filter.numTaps = BOXCAR10_FILTER_LEN;
+-  m_boxcar10Filter.pState  = m_boxcar10State;
+-  m_boxcar10Filter.pCoeffs = BOXCAR10_FILTER;
+-#else
+-  ::memset(m_nxdnState,      0x00U, 110U * sizeof(q15_t));
+-  ::memset(m_nxdnISincState, 0x00U, 60U * sizeof(q15_t));
+ 
++  m_boxcarFilter.numTaps = BOXCAR_FILTER_LEN;
++  m_boxcarFilter.pState  = m_boxcarState;
++  m_boxcarFilter.pCoeffs = BOXCAR_FILTER;
++  
+   m_nxdnFilter.numTaps = NXDN_0_2_FILTER_LEN;
+   m_nxdnFilter.pState  = m_nxdnState;
+   m_nxdnFilter.pCoeffs = NXDN_0_2_FILTER;
+@@ -180,106 +131,116 @@
+   m_nxdnISincFilter.numTaps = NXDN_ISINC_FILTER_LEN;
+   m_nxdnISincFilter.pState  = m_nxdnISincState;
+   m_nxdnISincFilter.pCoeffs = NXDN_ISINC_FILTER;
+-#endif
+-#endif
+ 
+   initInt();
+-  
++
+   selfTest();
++  setCOSInt(false);
++
++#if !defined(STANDALONE_MODE)
++  m_zmqsocket.bind ("ipc:///tmp/mmdvm-tx.ipc");
++  m_zmqsocketRX.connect ("ipc:///tmp/mmdvm-rx.ipc");
++#endif
+ }
+ 
+ void CIO::selfTest()
+ {
+   bool ledValue = false;
+ 
+-  for (uint8_t i = 0U; i < 6U; i++) {
++  for (uint8_t i = 0; i < 6; i++) {
+     ledValue = !ledValue;
+ 
+     // We exclude PTT to avoid trigger the transmitter
+     setLEDInt(ledValue);
+     setCOSInt(ledValue);
+-#if defined(MODE_LEDS)
++#if defined(ARDUINO_MODE_PINS)
+     setDStarInt(ledValue);
+     setDMRInt(ledValue);
+     setYSFInt(ledValue);
+     setP25Int(ledValue);
+-#if !defined(USE_ALTERNATE_NXDN_LEDS)
+     setNXDNInt(ledValue);
+ #endif
+-#if !defined(USE_ALTERNATE_POCSAG_LEDS)
+-    setPOCSAGInt(ledValue);
+-#endif
+-#if !defined(USE_ALTERNATE_FM_LEDS)
+-    setFMInt(ledValue);
+-#endif
+-#endif
+     delayInt(250);
+   }
+ 
+-#if defined(MODE_LEDS)
+-  setDStarInt(false);
++#if defined(ARDUINO_MODE_PINS)
++  setDStarInt(true);
+   setDMRInt(false);
+   setYSFInt(false);
+   setP25Int(false);
+-#if !defined(USE_ALTERNATE_NXDN_LEDS)
+   setNXDNInt(false);
+-#endif
+-#if !defined(USE_ALTERNATE_POCSAG_LEDS)
+-  setPOCSAGInt(false);
+-#endif
+-#if !defined(USE_ALTERNATE_FM_LEDS)
+-  setFMInt(false);
+-#endif
+-  setDStarInt(true);
+-
+-  delayInt(250);
+-  setDMRInt(true);
+ 
+   delayInt(250);
+-  setYSFInt(true);
+ 
+-  delayInt(250);
+-  setP25Int(true);
+-
+-#if !defined(USE_ALTERNATE_NXDN_LEDS)
+-  delayInt(250);
+-  setNXDNInt(true);
+-#endif
++  setDStarInt(true);
++  setDMRInt(true);
++  setYSFInt(false);
++  setP25Int(false);
++  setNXDNInt(false);
+ 
+-#if !defined(USE_ALTERNATE_POCSAG_LEDS)
+   delayInt(250);
+-  setPOCSAGInt(true);
+-#endif
+ 
+-#if !defined(USE_ALTERNATE_FM_LEDS)
++  setDStarInt(true);
++  setDMRInt(true);
++  setYSFInt(true);
++  setP25Int(false);
++  setNXDNInt(false);
++  
+   delayInt(250);
+-  setFMInt(true);
+ 
++  setDStarInt(true);
++  setDMRInt(true);
++  setYSFInt(true);
++  setP25Int(true);
++  setNXDNInt(false);
++  
+   delayInt(250);
+-  setFMInt(false);
+-#endif
+ 
+-#if !defined(USE_ALTERNATE_POCSAG_LEDS)
++  setDStarInt(true);
++  setDMRInt(true);
++  setYSFInt(true);
++  setP25Int(true);
++  setNXDNInt(true);
++  
+   delayInt(250);
+-  setPOCSAGInt(false);
+-#endif
+ 
+-#if !defined(USE_ALTERNATE_NXDN_LEDS)
+-  delayInt(250);
++  setDStarInt(true);
++  setDMRInt(true);
++  setYSFInt(true);
++  setP25Int(true);
+   setNXDNInt(false);
+-#endif
+ 
+   delayInt(250);
++  
++  setDStarInt(true);
++  setDMRInt(true);
++  setYSFInt(true);
+   setP25Int(false);
++  setNXDNInt(false);
+ 
+   delayInt(250);
++
++  setDStarInt(true);
++  setDMRInt(true);
+   setYSFInt(false);
++  setP25Int(false);
++  setNXDNInt(false);
+ 
+   delayInt(250);
++  
++  setDStarInt(true);
+   setDMRInt(false);
++  setYSFInt(false);
++  setP25Int(false);
++  setNXDNInt(false);
+ 
+   delayInt(250);
++
+   setDStarInt(false);
++  setDMRInt(false);
++  setYSFInt(false);
++  setP25Int(false);
++  setNXDNInt(false);
+ #endif
+ }
+ 
+@@ -301,26 +262,21 @@
+   if (m_started) {
+     // Two seconds timeout
+     if (m_watchdog >= 48000U) {
+-      if (m_modemState == STATE_DSTAR || m_modemState == STATE_DMR || m_modemState == STATE_YSF || m_modemState == STATE_P25 || m_modemState == STATE_NXDN || m_modemState == STATE_POCSAG) {
+-#if defined(MODE_DMR)
++      if (m_modemState == STATE_DSTAR || m_modemState == STATE_DMR || m_modemState == STATE_YSF || m_modemState == STATE_P25 || m_modemState == STATE_NXDN) {
+         if (m_modemState == STATE_DMR && m_tx)
+           dmrTX.setStart(false);
+-#endif
++        m_modemState = STATE_IDLE;
+         setMode(STATE_IDLE);
+       }
+ 
+       m_watchdog = 0U;
+     }
+ 
+-#if defined(CONSTANT_SRV_LED)
+-    setLEDInt(true);
+-#else
+     if (m_ledCount >= 24000U) {
+       m_ledCount = 0U;
+       m_ledValue = !m_ledValue;
+       setLEDInt(m_ledValue);
+     }
+-#endif
+   } else {
+     if (m_ledCount >= 240000U) {
+       m_ledCount = 0U;
+@@ -330,38 +286,49 @@
+     return;
+   }
+ 
+-  if (m_useCOSAsLockout)
+-    m_lockout = getCOSInt();
++#if defined(USE_COS_AS_LOCKOUT)
++  //m_lockout = getCOSInt();
++#endif
+ 
++    ::pthread_mutex_lock(&m_TXlock);
+   // Switch off the transmitter if needed
+   if (m_txBuffer.getData() == 0U && m_tx) {
+     m_tx = false;
+     setPTTInt(m_pttInvert ? true : false);
+-    DEBUG1("TX OFF");
+   }
++  ::pthread_mutex_unlock(&m_TXlock);
+ 
+-  if (m_rxBuffer.getData() >= RX_BLOCK_SIZE) {
++  ::pthread_mutex_lock(&m_RXlock);
++  u_int16_t block_size = m_rxBuffer.getData();
++  ::pthread_mutex_unlock(&m_RXlock);
++  
++  if (block_size >= RX_BLOCK_SIZE) {
++    uint16_t num_blocks = block_size / RX_BLOCK_SIZE;
++    for(uint16_t block_no = 0;block_no < num_blocks; block_no++)
++    {
+     q15_t    samples[RX_BLOCK_SIZE];
+     uint8_t  control[RX_BLOCK_SIZE];
+     uint16_t rssi[RX_BLOCK_SIZE];
+ 
++    ::pthread_mutex_lock(&m_RXlock);
+     for (uint16_t i = 0U; i < RX_BLOCK_SIZE; i++) {
+-      TSample sample;
+-      m_rxBuffer.get(sample);
+-      control[i] = sample.control;
++      uint16_t sample;
++      m_rxBuffer.get(sample, control[i]);
+       m_rssiBuffer.get(rssi[i]);
+ 
+       // Detect ADC overflow
+-      if (m_detect && (sample.sample == 0U || sample.sample == 4095U))
++      if (m_detect && (sample == 0U || sample == 4095U))
+         m_adcOverflow++;
+ 
+-      q15_t res1 = q15_t(sample.sample) - m_rxDCOffset;
++      q15_t res1 = q15_t(sample);// - m_rxDCOffset;
+       q31_t res2 = res1 * m_rxLevel;
+       samples[i] = q15_t(__SSAT((res2 >> 15), 16));
+     }
++    ::pthread_mutex_unlock(&m_RXlock);
++
++    //if (m_lockout)
++    //  return;
+ 
+-    if (m_lockout)
+-      return;
+ 
+ #if defined(USE_DCBLOCKER)
+     q31_t q31Samples[RX_BLOCK_SIZE];
+@@ -371,7 +338,7 @@
+     ::arm_biquad_cascade_df1_q31(&m_dcFilter, q31Samples, dcValues, RX_BLOCK_SIZE);
+ 
+     q31_t dcLevel = 0;
+-    for (uint8_t i = 0U; i < RX_BLOCK_SIZE; i++)
++   for (uint8_t i = 0U; i < RX_BLOCK_SIZE; i++)
+       dcLevel += dcValues[i];
+     dcLevel /= RX_BLOCK_SIZE;
+ 
+@@ -383,7 +350,6 @@
+ #endif
+ 
+     if (m_modemState == STATE_IDLE) {
+-#if defined(MODE_DSTAR)
+       if (m_dstarEnable) {
+         q15_t GMSKVals[RX_BLOCK_SIZE];
+ #if defined(USE_DCBLOCKER)
+@@ -393,80 +359,45 @@
+ #endif
+         dstarRX.samples(GMSKVals, rssi, RX_BLOCK_SIZE);
+       }
+-#endif
+ 
+-#if defined(MODE_P25)
+       if (m_p25Enable) {
+         q15_t P25Vals[RX_BLOCK_SIZE];
+ #if defined(USE_DCBLOCKER)
+-        ::arm_fir_fast_q15(&m_boxcar5Filter, dcSamples, P25Vals, RX_BLOCK_SIZE);
++        ::arm_fir_fast_q15(&m_boxcarFilter, dcSamples, P25Vals, RX_BLOCK_SIZE);
+ #else
+-        ::arm_fir_fast_q15(&m_boxcar5Filter, samples, P25Vals, RX_BLOCK_SIZE);
++        ::arm_fir_fast_q15(&m_boxcarFilter, samples, P25Vals, RX_BLOCK_SIZE);
+ #endif
+         p25RX.samples(P25Vals, rssi, RX_BLOCK_SIZE);
+       }
+-#endif
+ 
+-#if defined(MODE_NXDN)
+       if (m_nxdnEnable) {
+-        q15_t NXDNVals[RX_BLOCK_SIZE];
+-#if defined(USE_NXDN_BOXCAR)
+-#if defined(USE_DCBLOCKER)
+-        ::arm_fir_fast_q15(&m_boxcar10Filter, dcSamples, NXDNVals, RX_BLOCK_SIZE);
+-#else
+-        ::arm_fir_fast_q15(&m_boxcar10Filter, samples, NXDNVals, RX_BLOCK_SIZE);
+-#endif
+-#else
+         q15_t NXDNValsTmp[RX_BLOCK_SIZE];
+ #if defined(USE_DCBLOCKER)
+         ::arm_fir_fast_q15(&m_nxdnFilter, dcSamples, NXDNValsTmp, RX_BLOCK_SIZE);
+ #else
+         ::arm_fir_fast_q15(&m_nxdnFilter, samples, NXDNValsTmp, RX_BLOCK_SIZE);
+ #endif
++        q15_t NXDNVals[RX_BLOCK_SIZE];
+         ::arm_fir_fast_q15(&m_nxdnISincFilter, NXDNValsTmp, NXDNVals, RX_BLOCK_SIZE);
+-#endif
+-        nxdnRX.samples(NXDNVals, rssi, RX_BLOCK_SIZE);
+-      }
+-#endif
+-
+-#if defined(MODE_DMR)
+-      if (m_dmrEnable) {
+-        q15_t DMRVals[RX_BLOCK_SIZE];
+-        ::arm_fir_fast_q15(&m_rrc02Filter1, samples, DMRVals, RX_BLOCK_SIZE);
+-
+-        if (m_duplex)
+-          dmrIdleRX.samples(DMRVals, RX_BLOCK_SIZE);
+-        else
+-          dmrDMORX.samples(DMRVals, rssi, RX_BLOCK_SIZE);
+-      }
+-#endif
+ 
+-#if defined(MODE_YSF)
+-      if (m_ysfEnable) {
+-        q15_t YSFVals[RX_BLOCK_SIZE];
+-#if defined(USE_DCBLOCKER)
+-        ::arm_fir_fast_q15(&m_rrc02Filter2, dcSamples, YSFVals, RX_BLOCK_SIZE);
+-#else
+-        ::arm_fir_fast_q15(&m_rrc02Filter2, samples, YSFVals, RX_BLOCK_SIZE);
+-#endif
+-        ysfRX.samples(YSFVals, rssi, RX_BLOCK_SIZE);
++        nxdnRX.samples(NXDNVals, rssi, RX_BLOCK_SIZE);
+       }
+-#endif
+ 
+-#if defined(MODE_FM)
+-      if (m_fmEnable) {
+-        bool cos = getCOSInt();
+-#if defined(USE_DCBLOCKER)
+-        fm.samples(cos, dcSamples, RX_BLOCK_SIZE);
+-#else
+-        fm.samples(cos, samples, RX_BLOCK_SIZE);
+-#endif
++      if (m_dmrEnable || m_ysfEnable) {
++        q15_t RRCVals[RX_BLOCK_SIZE];
++        ::arm_fir_fast_q15(&m_rrcFilter, samples, RRCVals, RX_BLOCK_SIZE);
++
++        if (m_ysfEnable)
++          ysfRX.samples(RRCVals, rssi, RX_BLOCK_SIZE);
++
++        if (m_dmrEnable) {
++          if (m_duplex)
++            dmrIdleRX.samples(RRCVals, RX_BLOCK_SIZE);
++          else
++            dmrDMORX.samples(RRCVals, rssi, RX_BLOCK_SIZE);
++        }
+       }
+-#endif
+-    }
+-
+-#if defined(MODE_DSTAR)
+-    else if (m_modemState == STATE_DSTAR) {
++    } else if (m_modemState == STATE_DSTAR) {
+       if (m_dstarEnable) {
+         q15_t GMSKVals[RX_BLOCK_SIZE];
+ #if defined(USE_DCBLOCKER)
+@@ -476,16 +407,12 @@
+ #endif
+         dstarRX.samples(GMSKVals, rssi, RX_BLOCK_SIZE);
+       }
+-    }
+-#endif
+-
+-#if defined(MODE_DMR)
+-    else if (m_modemState == STATE_DMR) {
++    } else if (m_modemState == STATE_DMR) {
+       if (m_dmrEnable) {
+         q15_t DMRVals[RX_BLOCK_SIZE];
+-        ::arm_fir_fast_q15(&m_rrc02Filter1, samples, DMRVals, RX_BLOCK_SIZE);
++        ::arm_fir_fast_q15(&m_rrcFilter, samples, DMRVals, RX_BLOCK_SIZE);
+ 
+-        if (m_duplex) {
++        if (0) {
+           // If the transmitter isn't on, use the DMR idle RX to detect the wakeup CSBKs
+           if (m_tx)
+             dmrRX.samples(DMRVals, rssi, control, RX_BLOCK_SIZE);
+@@ -495,89 +422,54 @@
+           dmrDMORX.samples(DMRVals, rssi, RX_BLOCK_SIZE);
+         }
+       }
+-    }
+-#endif
+-
+-#if defined(MODE_YSF)
+-    else if (m_modemState == STATE_YSF) {
++    } else if (m_modemState == STATE_YSF) {
+       if (m_ysfEnable) {
+         q15_t YSFVals[RX_BLOCK_SIZE];
+ #if defined(USE_DCBLOCKER)
+-        ::arm_fir_fast_q15(&m_rrc02Filter2, dcSamples, YSFVals, RX_BLOCK_SIZE);
++        ::arm_fir_fast_q15(&m_rrcFilter, dcSamples, YSFVals, RX_BLOCK_SIZE);
+ #else
+-        ::arm_fir_fast_q15(&m_rrc02Filter2, samples, YSFVals, RX_BLOCK_SIZE);
++        ::arm_fir_fast_q15(&m_rrcFilter, samples, YSFVals, RX_BLOCK_SIZE);
+ #endif
+         ysfRX.samples(YSFVals, rssi, RX_BLOCK_SIZE);
+       }
+-    }
+-#endif
+-
+-#if defined(MODE_P25)
+-    else if (m_modemState == STATE_P25) {
++    } else if (m_modemState == STATE_P25) {
+       if (m_p25Enable) {
+         q15_t P25Vals[RX_BLOCK_SIZE];
+ #if defined(USE_DCBLOCKER)
+-        ::arm_fir_fast_q15(&m_boxcar5Filter, dcSamples, P25Vals, RX_BLOCK_SIZE);
++        ::arm_fir_fast_q15(&m_boxcarFilter, dcSamples, P25Vals, RX_BLOCK_SIZE);
+ #else
+-        ::arm_fir_fast_q15(&m_boxcar5Filter, samples, P25Vals, RX_BLOCK_SIZE);
++        ::arm_fir_fast_q15(&m_boxcarFilter, samples, P25Vals, RX_BLOCK_SIZE);
+ #endif
+         p25RX.samples(P25Vals, rssi, RX_BLOCK_SIZE);
+       }
+-    }
+-#endif
+-
+-#if defined(MODE_NXDN)
+-    else if (m_modemState == STATE_NXDN) {
++    } else if (m_modemState == STATE_NXDN) {
+       if (m_nxdnEnable) {
+-        q15_t NXDNVals[RX_BLOCK_SIZE];
+-#if defined(USE_NXDN_BOXCAR)
+-#if defined(USE_DCBLOCKER)
+-        ::arm_fir_fast_q15(&m_boxcar10Filter, dcSamples, NXDNVals, RX_BLOCK_SIZE);
+-#else
+-        ::arm_fir_fast_q15(&m_boxcar10Filter, samples, NXDNVals, RX_BLOCK_SIZE);
+-#endif
+-#else
+         q15_t NXDNValsTmp[RX_BLOCK_SIZE];
+ #if defined(USE_DCBLOCKER)
+         ::arm_fir_fast_q15(&m_nxdnFilter, dcSamples, NXDNValsTmp, RX_BLOCK_SIZE);
+ #else
+         ::arm_fir_fast_q15(&m_nxdnFilter, samples, NXDNValsTmp, RX_BLOCK_SIZE);
+ #endif
++        q15_t NXDNVals[RX_BLOCK_SIZE];
+         ::arm_fir_fast_q15(&m_nxdnISincFilter, NXDNValsTmp, NXDNVals, RX_BLOCK_SIZE);
+-#endif
++
+         nxdnRX.samples(NXDNVals, rssi, RX_BLOCK_SIZE);
+       }
+-    }
+-#endif
+-
+-#if defined(MODE_FM)
+-    else if (m_modemState == STATE_FM) {
+-      bool cos = getCOSInt();
+-#if defined(USE_DCBLOCKER)
+-      fm.samples(cos, dcSamples, RX_BLOCK_SIZE);
+-#else
+-      fm.samples(cos, samples, RX_BLOCK_SIZE);
+-#endif
+-    }
+-#endif
+-
+-#if defined(MODE_DSTAR)
+-    else if (m_modemState == STATE_DSTARCAL) {
++    } else if (m_modemState == STATE_DSTARCAL) {
+       q15_t GMSKVals[RX_BLOCK_SIZE];
+       ::arm_fir_fast_q15(&m_gaussianFilter, samples, GMSKVals, RX_BLOCK_SIZE);
+ 
+       calDStarRX.samples(GMSKVals, RX_BLOCK_SIZE);
+-    }
+-#endif
+-
+-    else if (m_modemState == STATE_RSSICAL) {
++    } else if (m_modemState == STATE_RSSICAL) {
+       calRSSI.samples(rssi, RX_BLOCK_SIZE);
+     }
+   }
++  }
+ }
+ 
+ void CIO::write(MMDVM_STATE mode, q15_t* samples, uint16_t length, const uint8_t* control)
+ {
++
+   if (!m_started)
+     return;
+ 
+@@ -588,7 +480,6 @@
+   if (!m_tx) {
+     m_tx = true;
+     setPTTInt(m_pttInvert ? false : true);
+-    DEBUG1("TX ON");
+   }
+ 
+   q15_t txLevel = 0;
+@@ -608,36 +499,36 @@
+     case STATE_NXDN:
+       txLevel = m_nxdnTXLevel;
+       break;
+-    case STATE_POCSAG:
+-      txLevel = m_pocsagTXLevel;
+-      break;
+-    case STATE_FM:
+-      txLevel = m_fmTXLevel;
+-      break;
+     default:
+       txLevel = m_cwIdTXLevel;
+       break;
+   }
+-
++    ::pthread_mutex_lock(&m_TXlock);
+   for (uint16_t i = 0U; i < length; i++) {
+     q31_t res1 = samples[i] * txLevel;
+     q15_t res2 = q15_t(__SSAT((res1 >> 15), 16));
+-    uint16_t res3 = uint16_t(res2 + m_txDCOffset);
++    uint16_t res3 = uint16_t(res2); // + m_txDCOffset);
++	//DEBUG2("txDCoffset: %d", m_txDCOffset);
+ 
+     // Detect DAC overflow
+-    if (res3 > 4095U)
+-      m_dacOverflow++;
++    //if (res3 > 4095U)
++      //m_dacOverflow++;
+ 
+-    if (control == NULL)
+-      m_txBuffer.put({res3, MARK_NONE});
+-    else
+-      m_txBuffer.put({res3, control[i]});
++    
++   if (control == NULL)
++     m_txBuffer.put(res3, MARK_NONE);
++   else
++     m_txBuffer.put(res3, control[i]);
+   }
++  ::pthread_mutex_unlock(&m_TXlock);
+ }
+ 
+-uint16_t CIO::getSpace() const
++uint16_t CIO::getSpace() 
+ {
+-  return m_txBuffer.getSpace();
++    ::pthread_mutex_lock(&m_TXlock);
++    u_int16_t space = m_txBuffer.getSpace();
++    ::pthread_mutex_unlock(&m_TXlock);
++  return space;
+ }
+ 
+ void CIO::setDecode(bool dcd)
+@@ -655,65 +546,42 @@
+ 
+ void CIO::setMode(MMDVM_STATE state)
+ {
+-  if (state == m_modemState)
+-    return;
+-
+-#if defined(MODE_LEDS)
+-  switch (m_modemState) {
+-    case STATE_DSTAR:  setDStarInt(false);  break;
+-    case STATE_DMR:    setDMRInt(false);    break;
+-    case STATE_YSF:    setYSFInt(false);    break;
+-    case STATE_P25:    setP25Int(false);    break;
+-    case STATE_NXDN:   setNXDNInt(false);   break;
+-    case STATE_POCSAG: setPOCSAGInt(false); break;
+-    case STATE_FM:     setFMInt(false);     break;
+-    default: break;
+-  }
+-
+-  switch (state) {
+-    case STATE_DSTAR:  setDStarInt(true);  break;
+-    case STATE_DMR:    setDMRInt(true);    break;
+-    case STATE_YSF:    setYSFInt(true);    break;
+-    case STATE_P25:    setP25Int(true);    break;
+-    case STATE_NXDN:   setNXDNInt(true);   break;
+-    case STATE_POCSAG: setPOCSAGInt(true); break;
+-    case STATE_FM:     setFMInt(true);     break;
+-    default: break;
+-  }
++    if (state == m_modemState)
++        return;
++#if defined(ARDUINO_MODE_PINS)
++  setDStarInt(m_modemState == STATE_DSTAR);
++  setDMRInt(m_modemState   == STATE_DMR);
++  setYSFInt(m_modemState   == STATE_YSF);
++  setP25Int(m_modemState   == STATE_P25);
++  setNXDNInt(m_modemState  == STATE_NXDN);
+ #endif
+-
+   m_modemState = state;
+ }
+ 
+-void CIO::setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnTXLevel, uint8_t pocsagTXLevel, uint8_t fmTXLevel, int16_t txDCOffset, int16_t rxDCOffset, bool useCOSAsLockout)
++void CIO::setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnTXLevel, int16_t txDCOffset, int16_t rxDCOffset)
+ {
+   m_pttInvert = pttInvert;
+ 
+-  m_rxLevel       = q15_t(rxLevel * 128);
+-  m_cwIdTXLevel   = q15_t(cwIdTXLevel * 128);
+-  m_dstarTXLevel  = q15_t(dstarTXLevel * 128);
+-  m_dmrTXLevel    = q15_t(dmrTXLevel * 128);
+-  m_ysfTXLevel    = q15_t(ysfTXLevel * 128);
+-  m_p25TXLevel    = q15_t(p25TXLevel * 128);
+-  m_nxdnTXLevel   = q15_t(nxdnTXLevel * 128);
+-  m_pocsagTXLevel = q15_t(pocsagTXLevel * 128);
+-  m_fmTXLevel     = q15_t(fmTXLevel * 128);
++  m_rxLevel      = q15_t(rxLevel * 128);
++  m_cwIdTXLevel  = q15_t(cwIdTXLevel * 128);
++  m_dstarTXLevel = q15_t(dstarTXLevel * 128);
++  m_dmrTXLevel   = q15_t(dmrTXLevel * 128);
++  m_ysfTXLevel   = q15_t(ysfTXLevel * 128);
++  m_p25TXLevel   = q15_t(p25TXLevel * 128);
++  m_nxdnTXLevel  = q15_t(nxdnTXLevel * 128);
+ 
+   m_rxDCOffset   = DC_OFFSET + rxDCOffset;
+   m_txDCOffset   = DC_OFFSET + txDCOffset;
+-
+-  m_useCOSAsLockout = useCOSAsLockout;
+   
+   if (rxInvert)
+     m_rxLevel = -m_rxLevel;
+   
+   if (txInvert) {
+-    m_dstarTXLevel  = -m_dstarTXLevel;
+-    m_dmrTXLevel    = -m_dmrTXLevel;
+-    m_ysfTXLevel    = -m_ysfTXLevel;
+-    m_p25TXLevel    = -m_p25TXLevel;
+-    m_nxdnTXLevel   = -m_nxdnTXLevel;
+-    m_pocsagTXLevel = -m_pocsagTXLevel;
++    m_dstarTXLevel = -m_dstarTXLevel;
++    m_dmrTXLevel   = -m_dmrTXLevel;
++    m_ysfTXLevel   = -m_ysfTXLevel;
++    m_p25TXLevel   = -m_p25TXLevel;
++    m_nxdnTXLevel  = -m_nxdnTXLevel;
+   }
+ }
+ 
+@@ -728,12 +596,18 @@
+ 
+ bool CIO::hasTXOverflow()
+ {
+-  return m_txBuffer.hasOverflowed();
++    ::pthread_mutex_lock(&m_TXlock);
++    bool has_overflowed = m_txBuffer.hasOverflowed();
++    ::pthread_mutex_unlock(&m_TXlock);
++  return has_overflowed;
+ }
+ 
+ bool CIO::hasRXOverflow()
+ {
+-  return m_rxBuffer.hasOverflowed();
++    ::pthread_mutex_lock(&m_RXlock);
++    bool has_overflowed = m_rxBuffer.hasOverflowed();
++    ::pthread_mutex_unlock(&m_RXlock);
++  return has_overflowed;
+ }
+ 
+ void CIO::resetWatchdog()
+@@ -750,3 +624,4 @@
+ {
+   return m_lockout;
+ }
++
+--- /tmp/upstream-mmdvm/./IO.h	2025-11-16 19:25:50.738622806 +0000
++++ ././IO.h	2025-11-16 18:30:07.000000000 +0000
+@@ -1,5 +1,7 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2018,2020,2021,2025 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017,2018 by Jonathan Naylor G4KLX
++ * 
++ *   GNU radio integration code written by Adrian Musceac YO8RZZ 2021
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -21,12 +23,12 @@
+ 
+ #include "Globals.h"
+ 
+-#include "RingBuffer.h"
++#include "SampleRB.h"
++#include "RSSIRB.h"
+ 
+-struct TSample {
+-  volatile uint16_t sample;
+-  volatile uint8_t control;
+-};
++#if !defined(STANDALONE_MODE)
++#include <zmq.hpp>
++#endif
+ 
+ class CIO {
+ public:
+@@ -38,15 +40,16 @@
+ 
+   void write(MMDVM_STATE mode, q15_t* samples, uint16_t length, const uint8_t* control = NULL);
+ 
+-  uint16_t getSpace() const;
++  uint16_t getSpace();
+ 
+   void setDecode(bool dcd);
+   void setADCDetection(bool detect);
+   void setMode(MMDVM_STATE state);
+   
+   void interrupt();
++  void interruptRX();
+ 
+-  void setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnTXLevel, uint8_t pocsagTXLevel, uint8_t fmTXLevel, int16_t txDCOffset, int16_t rxDCOffset, bool useCOSAsLockout);
++  void setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnLevel, int16_t txDCOffset, int16_t rxDCOffset);
+ 
+   void getOverflow(bool& adcOverflow, bool& dacOverflow);
+ 
+@@ -58,55 +61,31 @@
+   void resetWatchdog();
+   uint32_t getWatchdog();
+   
+-  uint8_t getCPU() const;
+-
+-  void getUDID(uint8_t* buffer);
+-
+   void selfTest();
+ 
+ private:
+-  bool                  m_started;
++  bool                 m_started;
++
++  pthread_t            m_thread;
++  pthread_t            m_threadRX;
+ 
+-  CRingBuffer<TSample>  m_rxBuffer;
+-  CRingBuffer<TSample>  m_txBuffer;
+-  CRingBuffer<uint16_t> m_rssiBuffer;
++  CSampleRB            m_rxBuffer;
++  CSampleRB            m_txBuffer;
++  CRSSIRB              m_rssiBuffer;
+ 
+-#if defined(USE_DCBLOCKER)
+   arm_biquad_casd_df1_inst_q31 m_dcFilter;
+   q31_t                        m_dcState[4];
+-#endif
+ 
+-#if defined(MODE_DSTAR)
++  arm_fir_instance_q15 m_rrcFilter;
+   arm_fir_instance_q15 m_gaussianFilter;
+-  q15_t                m_gaussianState[40U];      // NoTaps + BlockSize - 1, 12 + 20 - 1 plus some spare
+-#endif
+-
+-#if defined(MODE_DMR)
+-  arm_fir_instance_q15 m_rrc02Filter1;
+-  q15_t                m_rrc02State1[70U];         // NoTaps + BlockSize - 1, 42 + 20 - 1 plus some spare
+-#endif
+-
+-#if defined(MODE_YSF)
+-  arm_fir_instance_q15 m_rrc02Filter2;
+-  q15_t                m_rrc02State2[70U];         // NoTaps + BlockSize - 1, 42 + 20 - 1 plus some spare
+-#endif
+-
+-#if defined(MODE_P25)
+-  arm_fir_instance_q15 m_boxcar5Filter;
+-  q15_t                m_boxcar5State[30U];        // NoTaps + BlockSize - 1,  6 + 20 - 1 plus some spare
+-#endif
+-
+-#if defined(MODE_NXDN)
+-#if defined(USE_NXDN_BOXCAR)
+-  arm_fir_instance_q15 m_boxcar10Filter;
+-  q15_t                m_boxcar10State[40U];      // NoTaps + BlockSize - 1, 10 + 20 - 1 plus some spare
+-#else
++  arm_fir_instance_q15 m_boxcarFilter;
+   arm_fir_instance_q15 m_nxdnFilter;
+   arm_fir_instance_q15 m_nxdnISincFilter;
++  q15_t                m_rrcState[70U];           // NoTaps + BlockSize - 1, 42 + 20 - 1 plus some spare
++  q15_t                m_gaussianState[40U];      // NoTaps + BlockSize - 1, 12 + 20 - 1 plus some spare
++  q15_t                m_boxcarState[30U];        // NoTaps + BlockSize - 1, 6 + 20 - 1 plus some spare
+   q15_t                m_nxdnState[110U];         // NoTaps + BlockSize - 1, 82 + 20 - 1 plus some spare
+   q15_t                m_nxdnISincState[60U];     // NoTaps + BlockSize - 1, 32 + 20 - 1 plus some spare
+-#endif
+-#endif
+ 
+   bool                 m_pttInvert;
+   q15_t                m_rxLevel;
+@@ -116,14 +95,10 @@
+   q15_t                m_ysfTXLevel;
+   q15_t                m_p25TXLevel;
+   q15_t                m_nxdnTXLevel;
+-  q15_t                m_pocsagTXLevel;
+-  q15_t                m_fmTXLevel;
+ 
+   uint16_t             m_rxDCOffset;
+   uint16_t             m_txDCOffset;
+ 
+-  bool                 m_useCOSAsLockout;
+-
+   uint32_t             m_ledCount;
+   bool                 m_ledValue;
+ 
+@@ -136,10 +111,25 @@
+ 
+   bool                 m_lockout;
+ 
++#if !defined(STANDALONE_MODE)
++  zmq::context_t m_zmqcontext;
++  zmq::socket_t m_zmqsocket;
++  std::vector<short> m_audiobuf;
++
++  zmq::context_t m_zmqcontextRX;
++  zmq::socket_t m_zmqsocketRX;
++  std::vector<short> m_audiobufRX;
++#endif
++
++  pthread_mutex_t m_TXlock;
++  pthread_mutex_t m_RXlock;
++  bool m_COSint;
++
+   // Hardware specific routines
+   void initInt();
+   void startInt();
+-
++  static void* helper(void* arg);
++  static void* helperRX(void* arg);
+   bool getCOSInt();
+ 
+   void setLEDInt(bool on);
+@@ -151,8 +141,6 @@
+   void setYSFInt(bool on);
+   void setP25Int(bool on);
+   void setNXDNInt(bool on);
+-  void setPOCSAGInt(bool on);
+-  void setFMInt(bool on);
+   
+   void delayInt(unsigned int dly);
+ };
+--- /tmp/upstream-mmdvm/./MMDVM.cpp	2025-11-16 19:25:50.740622836 +0000
++++ ././MMDVM.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2018,2020,2021,2025 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017,2018 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2016 by Mathis Schmieder DB9MAT
+  *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *
+@@ -18,76 +18,53 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#if defined(STM32F4XX) || defined(STM32F7XX)
++#if defined(STM32F4XX) || defined(STM32F7XX) || defined(STM32F105xC) || defined(RPI)
+ 
+ #include "Config.h"
+ #include "Globals.h"
+ 
++#include "Log.h"
++#include "unistd.h"
++
+ // Global variables
+ MMDVM_STATE m_modemState = STATE_IDLE;
+ 
+-bool m_dstarEnable  = true;
+-bool m_dmrEnable    = true;
+-bool m_ysfEnable    = true;
+-bool m_p25Enable    = true;
+-bool m_nxdnEnable   = true;
+-bool m_pocsagEnable = true;
+-bool m_fmEnable     = true;
++bool m_dstarEnable = true;
++bool m_dmrEnable   = true;
++bool m_ysfEnable   = true;
++bool m_p25Enable   = true;
++bool m_nxdnEnable  = true;
+ 
+ bool m_duplex = true;
+ 
+ bool m_tx  = false;
+ bool m_dcd = false;
+ 
+-#if defined(MODE_DSTAR)
+-CDStarRX dstarRX;
+-CDStarTX dstarTX;
+-
+-CCalDStarRX calDStarRX;
+-CCalDStarTX calDStarTX;
+-#endif
++CDStarRX   dstarRX;
++CDStarTX   dstarTX;
+ 
+-#if defined(MODE_DMR)
+ CDMRIdleRX dmrIdleRX;
+-CDMRRX dmrRX;
+-CDMRTX dmrTX;
+-
+-CDMRDMORX dmrDMORX;
+-CDMRDMOTX dmrDMOTX;
+-
+-CCalDMR calDMR;
+-#endif
+-
+-#if defined(MODE_YSF)
+-CYSFRX ysfRX;
+-CYSFTX ysfTX;
+-#endif
++CDMRRX     dmrRX;
++CDMRTX     dmrTX;
+ 
+-#if defined(MODE_P25)
+-CP25RX p25RX;
+-CP25TX p25TX;
++CDMRDMORX  dmrDMORX;
++CDMRDMOTX  dmrDMOTX;
+ 
+-CCalP25 calP25;
+-#endif
+-
+-#if defined(MODE_NXDN)
+-CNXDNRX nxdnRX;
+-CNXDNTX nxdnTX;
++CYSFRX     ysfRX;
++CYSFTX     ysfTX;
+ 
+-CCalNXDN calNXDN;
+-#endif
+-
+-#if defined(MODE_POCSAG)
+-CPOCSAGTX  pocsagTX;
+-CCalPOCSAG calPOCSAG;
+-#endif
++CP25RX     p25RX;
++CP25TX     p25TX;
+ 
+-#if defined(MODE_FM)
+-CFM    fm;
+-CCalFM calFM;
+-#endif
++CNXDNRX    nxdnRX;
++CNXDNTX    nxdnTX;
+ 
+-CCalRSSI calRSSI;
++CCalDStarRX calDStarRX;
++CCalDStarTX calDStarTX;
++CCalDMR     calDMR;
++CCalP25     calP25;
++CCalNXDN    calNXDN;
++CCalRSSI    calRSSI;
+ 
+ CCWIdTX cwIdTX;
+ 
+@@ -96,7 +73,10 @@
+ 
+ void setup()
+ {
+-  serial.start();
++ LogDebug("MMDVM modem setup()");
++ 
++ serial.start();
++ 
+ }
+ 
+ void loop()
+@@ -106,77 +86,46 @@
+   io.process();
+ 
+   // The following is for transmitting
+-#if defined(MODE_DSTAR)
+   if (m_dstarEnable && m_modemState == STATE_DSTAR)
+     dstarTX.process();
+-#endif
+ 
+-#if defined(MODE_DMR)
+   if (m_dmrEnable && m_modemState == STATE_DMR) {
++
++    //LogDebug("Invoking DMR TX process()");
++
+     if (m_duplex)
+       dmrTX.process();
+     else
+       dmrDMOTX.process();
+   }
+-#endif
++  //else
++  // DEBUG4("Modem state: %d | Dmr Enable: %d | m_duplex: %d", m_modemState, m_dmrEnable,m_duplex);
+ 
+-#if defined(MODE_YSF)
+   if (m_ysfEnable && m_modemState == STATE_YSF)
+     ysfTX.process();
+-#endif
+ 
+-#if defined(MODE_P25)
+   if (m_p25Enable && m_modemState == STATE_P25)
+     p25TX.process();
+-#endif
+ 
+-#if defined(MODE_NXDN)
+   if (m_nxdnEnable && m_modemState == STATE_NXDN)
+     nxdnTX.process();
+-#endif
+ 
+-#if defined(MODE_POCSAG)
+-  if (m_pocsagEnable && (m_modemState == STATE_POCSAG || pocsagTX.busy()))
+-    pocsagTX.process();
+-#endif
+-
+-#if defined(MODE_FM)
+-  if (m_fmEnable && m_modemState == STATE_FM)
+-    fm.process();
+-#endif
+-
+-#if defined(MODE_DSTAR)
+   if (m_modemState == STATE_DSTARCAL)
+     calDStarTX.process();
+-#endif
+ 
+-#if defined(MODE_DMR)
+   if (m_modemState == STATE_DMRCAL || m_modemState == STATE_LFCAL || m_modemState == STATE_DMRCAL1K || m_modemState == STATE_DMRDMO1K)
+     calDMR.process();
+-#endif
+-
+-#if defined(MODE_FM)
+-  if (m_modemState == STATE_FMCAL10K || m_modemState == STATE_FMCAL12K || m_modemState == STATE_FMCAL15K || m_modemState == STATE_FMCAL20K || m_modemState == STATE_FMCAL25K || m_modemState == STATE_FMCAL30K)
+-    calFM.process();
+-#endif
+ 
+-#if defined(MODE_P25)
+   if (m_modemState == STATE_P25CAL1K)
+     calP25.process();
+-#endif
+ 
+-#if defined(MODE_NXDN)
+   if (m_modemState == STATE_NXDNCAL1K)
+     calNXDN.process();
+-#endif
+-
+-#if defined(MODE_POCSAG)
+-  if (m_modemState == STATE_POCSAGCAL)
+-    calPOCSAG.process();
+-#endif
+ 
+   if (m_modemState == STATE_IDLE)
+     cwIdTX.process();
++  
++  usleep(20);
+ }
+ 
+ int main()
+@@ -188,4 +137,3 @@
+ }
+ 
+ #endif
+-
+--- /tmp/upstream-mmdvm/./NXDNRX.cpp	2025-11-16 19:25:50.744622898 +0000
++++ ././NXDNRX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2018,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2018 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,9 +17,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_NXDN)
+-
+ #include "Globals.h"
+ #include "NXDNRX.h"
+ #include "Utils.h"
+@@ -406,5 +403,3 @@
+   m_rssiCount = 0U;
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./NXDNRX.h	2025-11-16 19:25:50.744622898 +0000
++++ ././NXDNRX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2018,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017,2018 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,13 +16,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_NXDN)
+-
+ #if !defined(NXDNRX_H)
+ #define  NXDNRX_H
+ 
++#include "Config.h"
+ #include "NXDNDefines.h"
+ 
+ enum NXDNRX_STATE {
+@@ -70,5 +67,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./NXDNTX.cpp	2025-11-16 19:25:50.744622898 +0000
++++ ././NXDNTX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2018,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2018 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2017 by Andy Uribe CA6JAU
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -18,9 +18,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_NXDN)
+-
+ #include "Globals.h"
+ #include "NXDNTX.h"
+ 
+@@ -48,7 +45,7 @@
+ const uint8_t NXDN_SYNC = 0x5FU;
+ 
+ CNXDNTX::CNXDNTX() :
+-m_buffer(TX_BUFFER_LEN),
++m_buffer(2000U),
+ m_modFilter(),
+ m_sincFilter(),
+ m_modState(),
+@@ -56,9 +53,7 @@
+ m_poBuffer(),
+ m_poLen(0U),
+ m_poPtr(0U),
+-m_txDelay(240U),     // 200ms
+-m_txHang(3000U),     // 5s
+-m_txCount(0U)
++m_txDelay(240U)      // 200ms
+ {
+   ::memset(m_modState, 0x00U, 16U * sizeof(q15_t));
+   ::memset(m_sincState,  0x00U, 70U * sizeof(q15_t));
+@@ -75,7 +70,10 @@
+ 
+ void CNXDNTX::process()
+ {
+-  if (m_poLen == 0U && m_buffer.getData() > 0U) {
++  if (m_buffer.getData() == 0U && m_poLen == 0U)
++    return;
++
++  if (m_poLen == 0U) {
+     if (!m_tx) {
+       for (uint16_t i = 0U; i < m_txDelay; i++)
+         m_poBuffer[m_poLen++] = NXDN_SYNC;
+@@ -84,8 +82,7 @@
+       m_poBuffer[m_poLen++] = NXDN_PREAMBLE[2U];
+     } else {
+       for (uint8_t i = 0U; i < NXDN_FRAME_LENGTH_BYTES; i++) {
+-        uint8_t c = 0U;
+-        m_buffer.get(c);
++        uint8_t c = m_buffer.get();
+         m_poBuffer[m_poLen++] = c;
+       }
+     }
+@@ -101,8 +98,6 @@
+       writeByte(c);
+ 
+       space -= 4U * NXDN_RADIO_SYMBOL_LENGTH;
+-      if (m_duplex)
+-        m_txCount = m_txHang;
+       
+       if (m_poPtr >= m_poLen) {
+         m_poPtr = 0U;
+@@ -110,23 +105,10 @@
+         return;
+       }
+     }
+-  } else if (m_txCount > 0U) {
+-    // Transmit silence until the hang timer has expired.
+-    uint16_t space = io.getSpace();
+-
+-    while (space > (4U * NXDN_RADIO_SYMBOL_LENGTH)) {
+-      writeSilence();
+-
+-      space -= 4U * NXDN_RADIO_SYMBOL_LENGTH;
+-      m_txCount--;
+-
+-      if (m_txCount == 0U)
+-        return;
+-    }
+   }
+ }
+ 
+-uint8_t CNXDNTX::writeData(const uint8_t* data, uint16_t length)
++uint8_t CNXDNTX::writeData(const uint8_t* data, uint8_t length)
+ {
+   if (length != (NXDN_FRAME_LENGTH_BYTES + 1U))
+     return 4U;
+@@ -173,19 +155,6 @@
+   io.write(STATE_NXDN, outBuffer, NXDN_RADIO_SYMBOL_LENGTH * 4U);
+ }
+ 
+-void CNXDNTX::writeSilence()
+-{
+-  q15_t inBuffer[4U] = {0x00U, 0x00U, 0x00U, 0x00U};
+-  q15_t intBuffer[NXDN_RADIO_SYMBOL_LENGTH * 4U];
+-  q15_t outBuffer[NXDN_RADIO_SYMBOL_LENGTH * 4U];
+-
+-  ::arm_fir_interpolate_q15(&m_modFilter, inBuffer, intBuffer, 4U);
+-
+-  ::arm_fir_fast_q15(&m_sincFilter, intBuffer, outBuffer, NXDN_RADIO_SYMBOL_LENGTH * 4U);
+-
+-  io.write(STATE_NXDN, outBuffer, NXDN_RADIO_SYMBOL_LENGTH * 4U);
+-}
+-
+ void CNXDNTX::setTXDelay(uint8_t delay)
+ {
+   m_txDelay = 300U + uint16_t(delay) * 6U;        // 500ms + tx delay
+@@ -199,10 +168,3 @@
+   return m_buffer.getSpace() / NXDN_FRAME_LENGTH_BYTES;
+ }
+ 
+-void CNXDNTX::setParams(uint8_t txHang)
+-{
+-  m_txHang = txHang * 600U;
+-}
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./NXDNTX.h	2025-11-16 19:25:50.744622898 +0000
++++ ././NXDNTX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2018,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017,2018 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,20 +16,18 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_NXDN)
+-
+ #if !defined(NXDNTX_H)
+ #define  NXDNTX_H
+ 
+-#include "RingBuffer.h"
++#include "Config.h"
++
++#include "SerialRB.h"
+ 
+ class CNXDNTX {
+ public:
+   CNXDNTX();
+ 
+-  uint8_t writeData(const uint8_t* data, uint16_t length);
++  uint8_t writeData(const uint8_t* data, uint8_t length);
+ 
+   void process();
+ 
+@@ -37,10 +35,8 @@
+ 
+   uint8_t getSpace() const;
+ 
+-  void setParams(uint8_t txHang);
+-
+ private:
+-  CRingBuffer<uint8_t>                        m_buffer;
++  CSerialRB                        m_buffer;
+   arm_fir_interpolate_instance_q15 m_modFilter;
+   arm_fir_instance_q15             m_sincFilter;
+   q15_t                            m_modState[16U];    // blockSize + phaseLength - 1, 4 + 9 - 1 plus some spare
+@@ -49,14 +45,9 @@
+   uint16_t                         m_poLen;
+   uint16_t                         m_poPtr;
+   uint16_t                         m_txDelay;
+-  uint32_t                         m_txHang;
+-  uint32_t                         m_txCount;
+ 
+   void writeByte(uint8_t c);
+-  void writeSilence();
+ };
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./P25Defines.h	2025-11-16 19:25:50.745622913 +0000
++++ ././P25Defines.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,6 +1,5 @@
+ /*
+  *   Copyright (C) 2016,2017 by Jonathan Naylor G4KLX
+- *   Copyright (C) 2018 by Bryan Biedenkapp <gatekeep@gmail.com>
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -42,25 +41,14 @@
+ const unsigned int P25_TERM_FRAME_LENGTH_SYMBOLS   = P25_TERM_FRAME_LENGTH_BYTES * 4U;
+ const unsigned int P25_TERM_FRAME_LENGTH_SAMPLES   = P25_TERM_FRAME_LENGTH_SYMBOLS * P25_RADIO_SYMBOL_LENGTH;
+ 
+-const unsigned int P25_TSDU_FRAME_LENGTH_BYTES     = 45U;
+-const unsigned int P25_TSDU_FRAME_LENGTH_BITS      = P25_TSDU_FRAME_LENGTH_BYTES * 8U; 
+-const unsigned int P25_TSDU_FRAME_LENGTH_SYMBOLS   = P25_TSDU_FRAME_LENGTH_BYTES * 4U; 
+-const unsigned int P25_TSDU_FRAME_LENGTH_SAMPLES   = P25_TSDU_FRAME_LENGTH_SYMBOLS * P25_RADIO_SYMBOL_LENGTH;
+-
+-const unsigned int P25_PDU_HDR_FRAME_LENGTH_BYTES = 45U;
+-const unsigned int P25_PDU_HDR_FRAME_LENGTH_BITS = P25_PDU_HDR_FRAME_LENGTH_BYTES * 8U;
+-const unsigned int P25_PDU_HDR_FRAME_LENGTH_SYMBOLS = P25_PDU_HDR_FRAME_LENGTH_BYTES * 4U;
+-const unsigned int P25_PDU_HDR_FRAME_LENGTH_SAMPLES = P25_PDU_HDR_FRAME_LENGTH_SYMBOLS * P25_RADIO_SYMBOL_LENGTH;
+-
+ const unsigned int P25_SYNC_LENGTH_BYTES   = 6U;
+ const unsigned int P25_SYNC_LENGTH_BITS    = P25_SYNC_LENGTH_BYTES * 8U;
+ const unsigned int P25_SYNC_LENGTH_SYMBOLS = P25_SYNC_LENGTH_BYTES * 4U;
+ const unsigned int P25_SYNC_LENGTH_SAMPLES = P25_SYNC_LENGTH_SYMBOLS * P25_RADIO_SYMBOL_LENGTH;
+ 
+-const unsigned int P25_NID_LENGTH_BYTES    = 8U;
+-const unsigned int P25_NID_LENGTH_BITS     = P25_NID_LENGTH_BYTES * 8U;
+-const unsigned int P25_NID_LENGTH_SYMBOLS  = P25_NID_LENGTH_BYTES * 4U; 
+-const unsigned int P25_NID_LENGTH_SAMPLES  = P25_NID_LENGTH_SYMBOLS * P25_RADIO_SYMBOL_LENGTH;
++const unsigned int P25_NID_LENGTH_BITS     = 64U;
++const unsigned int P25_NID_LENGTH_SYMBOLS  = 32U;
++const unsigned int P25_NID_LENGTH_SAMPLESS = P25_NID_LENGTH_SYMBOLS * P25_RADIO_SYMBOL_LENGTH;
+ 
+ const uint8_t P25_SYNC_BYTES[] = {0x55U, 0x75U, 0xF5U, 0xFFU, 0x77U, 0xFFU};
+ const uint8_t P25_SYNC_BYTES_LENGTH  = 6U;
+@@ -77,13 +65,5 @@
+ const uint32_t P25_SYNC_SYMBOLS      = 0x00FB30A0U;
+ const uint32_t P25_SYNC_SYMBOLS_MASK = 0x00FFFFFFU;
+ 
+-const uint8_t P25_DUID_HDU = 0x00U;             // Header Data Unit
+-const uint8_t P25_DUID_TDU = 0x03U;             // Simple Terminator Data Unit
+-const uint8_t P25_DUID_LDU1 = 0x05U;            // Logical Link Data Unit 1
+-const uint8_t P25_DUID_TSDU = 0x07U;            // Trunking System Data Unit
+-const uint8_t P25_DUID_LDU2 = 0x0AU;            // Logical Link Data Unit 2
+-const uint8_t P25_DUID_PDU = 0x0CU;             // Packet Data Unit 
+-const uint8_t P25_DUID_TDULC = 0x0FU;           // Terminator Data Unit with Link Control
+-
+ #endif
+ 
+--- /tmp/upstream-mmdvm/./P25RX.cpp	2025-11-16 19:25:50.745622913 +0000
++++ ././P25RX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,6 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2017,2020 by Jonathan Naylor G4KLX
+- *   Copyright (C) 2018 by Bryan Biedenkapp <gatekeep@gmail.com>
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -18,17 +17,12 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_P25)
+-
+ #include "Globals.h"
+ #include "P25RX.h"
+ #include "Utils.h"
+ 
+ const q15_t SCALING_FACTOR = 18750;      // Q15(0.57)
+ 
+-const uint8_t CORRELATION_COUNTDOWN = 10U;//5U;
+-
+ const uint8_t MAX_SYNC_BIT_START_ERRS = 2U;
+ const uint8_t MAX_SYNC_BIT_RUN_ERRS   = 4U;
+ 
+@@ -66,8 +60,7 @@
+ m_thresholdVal(0),
+ m_averagePtr(NOAVEPTR),
+ m_rssiAccum(0U),
+-m_rssiCount(0U),
+-m_duid(0U)
++m_rssiCount(0U)
+ {
+ }
+ 
+@@ -91,7 +84,6 @@
+   m_countdown     = 0U;
+   m_rssiAccum     = 0U;
+   m_rssiCount     = 0U;
+-  m_duid          = 0U;
+ }
+ 
+ void CP25RX::samples(const q15_t* samples, uint16_t* rssi, uint8_t length)
+@@ -121,10 +113,8 @@
+     }
+ 
+     m_dataPtr++;
+-    if (m_dataPtr >= P25_LDU_FRAME_LENGTH_SAMPLES) {
++    if (m_dataPtr >= P25_LDU_FRAME_LENGTH_SAMPLES)
+       m_dataPtr = 0U;
+-      m_duid = 0U;
+-    }
+ 
+     m_bitPtr++;
+     if (m_bitPtr >= P25_RADIO_SYMBOL_LENGTH)
+@@ -146,7 +136,7 @@
+ 
+       m_averagePtr = NOAVEPTR;
+ 
+-      m_countdown = CORRELATION_COUNTDOWN;
++      m_countdown = 5U;
+     }
+   }
+ 
+@@ -179,79 +169,16 @@
+   }
+ 
+   if (m_dataPtr == m_maxSyncPtr) {
+-    uint16_t nidStartPtr = m_hdrStartPtr + P25_SYNC_LENGTH_SAMPLES;
+-    if (nidStartPtr >= P25_LDU_FRAME_LENGTH_SAMPLES)
+-        nidStartPtr -= P25_LDU_FRAME_LENGTH_SAMPLES;
+-
+-    uint8_t nid[2U];
+-    samplesToBits(nidStartPtr, (2U * 4U), nid, 0U, m_centreVal, m_thresholdVal);
+-    // DEBUG3("P25RX: nid (b0 - b1)", nid[0U], nid[1U]);
+-
+-    m_duid = nid[1U] & 0x0F;
+-
+-    switch (m_duid) {
+-        case P25_DUID_HDU: {
+-                calculateLevels(m_hdrStartPtr, P25_HDR_FRAME_LENGTH_SYMBOLS);
+-
+-                DEBUG4("P25RX: sync found in Hdr pos/centre/threshold", m_hdrSyncPtr, m_centreVal, m_thresholdVal);
+-
+-                uint8_t frame[P25_HDR_FRAME_LENGTH_BYTES + 1U];
+-                samplesToBits(m_hdrStartPtr, P25_HDR_FRAME_LENGTH_SYMBOLS, frame, 8U, m_centreVal, m_thresholdVal);
+-
+-                frame[0U] = 0x01U;
+-                serial.writeP25Hdr(frame, P25_HDR_FRAME_LENGTH_BYTES + 1U);
+-            }
+-            break;
+-		case P25_DUID_PDU: {
+-				calculateLevels(m_hdrSyncPtr, P25_PDU_HDR_FRAME_LENGTH_SYMBOLS);
+-
+-				DEBUG4("P25RX: sync found in PDU pos/centre/threshold", m_hdrSyncPtr, m_centreVal, m_thresholdVal);
+-
+-				uint8_t frame[P25_PDU_HDR_FRAME_LENGTH_BYTES + 1U];
+-				samplesToBits(m_hdrSyncPtr, P25_PDU_HDR_FRAME_LENGTH_SYMBOLS, frame, 8U, m_centreVal, m_thresholdVal);
+-
+-				frame[0U] = 0x01U;
+-				serial.writeP25Hdr(frame, P25_PDU_HDR_FRAME_LENGTH_BYTES + 1U);
+-			}
+-			break;
+-		case P25_DUID_TSDU: {
+-                calculateLevels(m_hdrStartPtr, P25_TSDU_FRAME_LENGTH_SYMBOLS);
+-
+-                DEBUG4("P25RX: sync found in TSDU pos/centre/threshold", m_hdrSyncPtr, m_centreVal, m_thresholdVal);
+-
+-                uint8_t frame[P25_TSDU_FRAME_LENGTH_BYTES + 1U];
+-                samplesToBits(m_hdrStartPtr, P25_TSDU_FRAME_LENGTH_SYMBOLS, frame, 8U, m_centreVal, m_thresholdVal);
+-
+-                frame[0U] = 0x01U;
+-                serial.writeP25Hdr(frame, P25_TSDU_FRAME_LENGTH_BYTES + 1U);
+-            }
+-            break;
+-        case P25_DUID_TDU: {
+-                calculateLevels(m_hdrStartPtr, P25_TERM_FRAME_LENGTH_SYMBOLS);
+-
+-                DEBUG4("P25RX: sync found in TDU pos/centre/threshold", m_hdrSyncPtr, m_centreVal, m_thresholdVal);
+-
+-                uint8_t frame[P25_TERM_FRAME_LENGTH_BYTES + 1U];
+-                samplesToBits(m_hdrStartPtr, P25_TERM_FRAME_LENGTH_SYMBOLS, frame, 8U, m_centreVal, m_thresholdVal);
+-
+-                frame[0U] = 0x01U;
+-                serial.writeP25Hdr(frame, P25_TERM_FRAME_LENGTH_BYTES + 1U);
+-            }
+-            break;
+-        case P25_DUID_TDULC: {
+-                calculateLevels(m_hdrStartPtr, P25_TERMLC_FRAME_LENGTH_SYMBOLS);
+-
+-                DEBUG4("P25RX: sync found in TDULC pos/centre/threshold", m_hdrSyncPtr, m_centreVal, m_thresholdVal);
+-
+-                uint8_t frame[P25_TERMLC_FRAME_LENGTH_BYTES + 1U];
+-                samplesToBits(m_hdrStartPtr, P25_TERMLC_FRAME_LENGTH_SYMBOLS, frame, 8U, m_centreVal, m_thresholdVal);
+-
+-                frame[0U] = 0x01U;
+-                serial.writeP25Hdr(frame, P25_TERMLC_FRAME_LENGTH_BYTES + 1U);
+-            }
+-            break;
+-        default:
+-            break;
++    if (m_hdrSyncPtr != m_lduSyncPtr) {
++      calculateLevels(m_hdrStartPtr, P25_HDR_FRAME_LENGTH_SYMBOLS);
++
++      DEBUG4("P25RX: sync found in Hdr pos/centre/threshold", m_hdrSyncPtr, m_centreVal, m_thresholdVal);
++
++      uint8_t frame[P25_HDR_FRAME_LENGTH_BYTES + 1U];
++      samplesToBits(m_hdrStartPtr, P25_HDR_FRAME_LENGTH_SYMBOLS, frame, 8U, m_centreVal, m_thresholdVal);
++
++      frame[0U] = 0x01U;
++      serial.writeP25Hdr(frame, P25_HDR_FRAME_LENGTH_BYTES + 1U);
+     }
+ 
+     m_minSyncPtr = m_lduSyncPtr + P25_LDU_FRAME_LENGTH_SAMPLES - 1U;
+@@ -311,7 +238,6 @@
+       m_averagePtr = NOAVEPTR;
+       m_countdown  = 0U;
+       m_maxCorr    = 0;
+-      m_duid       = 0U;
+ 		} else {
+       frame[0U] = m_lostCount == (MAX_SYNC_FRAMES - 1U) ? 0x01U : 0x00U;
+       writeRSSILdu(frame);
+@@ -538,6 +464,3 @@
+   m_rssiAccum = 0U;
+   m_rssiCount = 0U;
+ }
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./P25RX.h	2025-11-16 19:25:50.745622913 +0000
++++ ././P25RX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,6 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2020 by Jonathan Naylor G4KLX
+- *   Copyright (C) 2018 by Bryan Biedenkapp <gatekeep@gmail.com>
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,13 +16,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_P25)
+-
+ #if !defined(P25RX_H)
+ #define  P25RX_H
+ 
++#include "Config.h"
+ #include "P25Defines.h"
+ 
+ enum P25RX_STATE {
+@@ -63,7 +59,6 @@
+   uint8_t     m_averagePtr;
+   uint32_t    m_rssiAccum;
+   uint16_t    m_rssiCount;
+-  uint8_t     m_duid;
+ 
+   void processNone(q15_t sample);
+   void processHdr(q15_t sample);
+@@ -75,6 +70,3 @@
+ };
+ 
+ #endif
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./P25TX.cpp	2025-11-16 19:25:50.745622913 +0000
++++ ././P25TX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2016,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2016,2017 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2017 by Andy Uribe CA6JAU
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -18,9 +18,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_P25)
+-
+ #include "Globals.h"
+ #include "P25TX.h"
+ 
+@@ -46,7 +43,7 @@
+ const uint8_t P25_START_SYNC = 0x77U;
+ 
+ CP25TX::CP25TX() :
+-m_buffer(TX_BUFFER_LEN),
++m_buffer(1500U),
+ m_modFilter(),
+ m_lpFilter(),
+ m_modState(),
+@@ -54,9 +51,7 @@
+ m_poBuffer(),
+ m_poLen(0U),
+ m_poPtr(0U),
+-m_txDelay(240U),      // 200ms
+-m_txHang(6000U),      // 5s
+-m_txCount(0U)
++m_txDelay(240U)       // 200ms
+ {
+   ::memset(m_modState, 0x00U, 16U * sizeof(q15_t));
+   ::memset(m_lpState,  0x00U, 60U * sizeof(q15_t));
+@@ -73,16 +68,17 @@
+ 
+ void CP25TX::process()
+ {
+-  if (m_poLen == 0U && m_buffer.getData() > 0U) {
++  if (m_buffer.getData() == 0U && m_poLen == 0U)
++    return;
++
++  if (m_poLen == 0U) {
+     if (!m_tx) {
+       for (uint16_t i = 0U; i < m_txDelay; i++)
+         m_poBuffer[m_poLen++] = P25_START_SYNC;
+     } else {
+-      uint8_t length;
+-      m_buffer.get(length);
++      uint8_t length = m_buffer.get();
+       for (uint8_t i = 0U; i < length; i++) {
+-        uint8_t c = 0U;
+-        m_buffer.get(c);
++        uint8_t c = m_buffer.get();
+         m_poBuffer[m_poLen++] = c;
+       }
+     }
+@@ -98,32 +94,17 @@
+       writeByte(c);
+ 
+       space -= 4U * P25_RADIO_SYMBOL_LENGTH;
+-       if (m_duplex)
+-        m_txCount = m_txHang;
+-
++      
+       if (m_poPtr >= m_poLen) {
+         m_poPtr = 0U;
+         m_poLen = 0U;
+         return;
+       }
+     }
+-  } else if (m_txCount > 0U) {
+-    // Transmit silence until the hang timer has expired.
+-    uint16_t space = io.getSpace();
+-
+-    while (space > (4U * P25_RADIO_SYMBOL_LENGTH)) {
+-      writeSilence();
+-
+-      space -= 4U * P25_RADIO_SYMBOL_LENGTH;
+-      m_txCount--;
+-
+-      if (m_txCount == 0U)
+-        return;
+-    }
+   }
+ }
+ 
+-uint8_t CP25TX::writeData(const uint8_t* data, uint16_t length)
++uint8_t CP25TX::writeData(const uint8_t* data, uint8_t length)
+ {
+   if (length < (P25_TERM_FRAME_LENGTH_BYTES + 1U))
+     return 4U;
+@@ -171,19 +152,6 @@
+   io.write(STATE_P25, outBuffer, P25_RADIO_SYMBOL_LENGTH * 4U);
+ }
+ 
+-void CP25TX::writeSilence()
+-{
+-  q15_t inBuffer[4U] = {0x00U, 0x00U, 0x00U, 0x00U};
+-  q15_t intBuffer[P25_RADIO_SYMBOL_LENGTH * 4U];
+-  q15_t outBuffer[P25_RADIO_SYMBOL_LENGTH * 4U];
+-
+-  ::arm_fir_interpolate_q15(&m_modFilter, inBuffer, intBuffer, 4U);
+-
+-  ::arm_fir_fast_q15(&m_lpFilter, intBuffer, outBuffer, P25_RADIO_SYMBOL_LENGTH * 4U);
+-
+-  io.write(STATE_P25, outBuffer, P25_RADIO_SYMBOL_LENGTH * 4U);
+-}
+-
+ void CP25TX::setTXDelay(uint8_t delay)
+ {
+   m_txDelay = 600U + uint16_t(delay) * 12U;        // 500ms + tx delay
+@@ -196,11 +164,3 @@
+ {
+   return m_buffer.getSpace() / P25_LDU_FRAME_LENGTH_BYTES;
+ }
+-
+-void CP25TX::setParams(uint8_t txHang)
+-{
+-  m_txHang = txHang * 1200U;
+-}
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./P25TX.h	2025-11-16 19:25:50.746622929 +0000
++++ ././P25TX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2016,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2016,2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,20 +16,18 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_P25)
+-
+ #if !defined(P25TX_H)
+ #define  P25TX_H
+ 
+-#include "RingBuffer.h"
++#include "Config.h"
++
++#include "SerialRB.h"
+ 
+ class CP25TX {
+ public:
+   CP25TX();
+ 
+-  uint8_t writeData(const uint8_t* data, uint16_t length);
++  uint8_t writeData(const uint8_t* data, uint8_t length);
+ 
+   void process();
+ 
+@@ -37,10 +35,8 @@
+ 
+   uint8_t getSpace() const;
+ 
+-  void setParams(uint8_t txHang);
+-
+ private:
+-  CRingBuffer<uint8_t>                        m_buffer;
++  CSerialRB                        m_buffer;
+   arm_fir_interpolate_instance_q15 m_modFilter;
+   arm_fir_instance_q15             m_lpFilter;
+   q15_t                            m_modState[16U];    // blockSize + phaseLength - 1, 4 + 9 - 1 plus some spare
+@@ -49,14 +45,9 @@
+   uint16_t                         m_poLen;
+   uint16_t                         m_poPtr;
+   uint16_t                         m_txDelay;
+-  uint32_t                         m_txHang;
+-  uint32_t                         m_txCount;
+ 
+   void writeByte(uint8_t c);
+-  void writeSilence();
+ };
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./SerialPort.cpp	2025-11-16 19:25:50.748622959 +0000
++++ ././SerialPort.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2013,2015-2021,2025 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2013,2015,2016,2017,2018 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2016 by Colin Durbridge G4EML
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -24,8 +24,9 @@
+ #include "GitVersion.h"
+ #endif
+ 
++
+ #include "SerialPort.h"
+-#include "Version.h"
++#include "Log.h"
+ 
+ const uint8_t MMDVM_FRAME_START  = 0xE0U;
+ 
+@@ -63,102 +64,64 @@
+ const uint8_t MMDVM_NXDN_DATA    = 0x40U;
+ const uint8_t MMDVM_NXDN_LOST    = 0x41U;
+ 
+-const uint8_t MMDVM_POCSAG_DATA  = 0x50U;
+-
+-const uint8_t MMDVM_FM_PARAMS1   = 0x60U;
+-const uint8_t MMDVM_FM_PARAMS2   = 0x61U;
+-const uint8_t MMDVM_FM_PARAMS3   = 0x62U;
+-const uint8_t MMDVM_FM_PARAMS4   = 0x63U;
+-const uint8_t MMDVM_FM_DATA      = 0x65U;
+-const uint8_t MMDVM_FM_STATUS    = 0x66U;
+-const uint8_t MMDVM_FM_EOT       = 0x67U;
+-
+ const uint8_t MMDVM_ACK          = 0x70U;
+ const uint8_t MMDVM_NAK          = 0x7FU;
+ 
+-const uint8_t MMDVM_SERIAL_DATA  = 0x80U;
+-const uint8_t MMDVM_I2C_DATA     = 0x81U;
++const uint8_t MMDVM_SERIAL       = 0x80U;
+ 
+ const uint8_t MMDVM_TRANSPARENT  = 0x90U;
+-const uint8_t MMDVM_QSO_INFO     = 0x91U;
+ 
+ const uint8_t MMDVM_DEBUG1       = 0xF1U;
+ const uint8_t MMDVM_DEBUG2       = 0xF2U;
+ const uint8_t MMDVM_DEBUG3       = 0xF3U;
+ const uint8_t MMDVM_DEBUG4       = 0xF4U;
+ const uint8_t MMDVM_DEBUG5       = 0xF5U;
+-const uint8_t MMDVM_DEBUG_DUMP   = 0xFAU;
+-
+-#if EXTERNAL_OSC == 12000000
+-#define TCXO "12.0000 MHz"
+-#elif EXTERNAL_OSC == 12288000
+-#define TCXO "12.2880 MHz"
+-#elif EXTERNAL_OSC == 14400000
+-#define TCXO "14.4000 MHz"
+-#elif EXTERNAL_OSC == 19200000
+-#define TCXO "19.2000 Mhz"
+-#else
+-#define TCXO "NO TCXO"
+-#endif
+ 
+-#if defined(DRCC_DVM_NQF)
+-#define	HW_TYPE	"MMDVM DRCC_DVM_NQF"
+-#elif defined(DRCC_DVM_HHP446)
+-#define	HW_TYPE	"MMDVM DRCC_DVM_HHP(446)"
+-#elif defined(DRCC_DVM_722)
+-#define HW_TYPE "MMDVM RB_STM32_DVM(722)"
+-#elif defined(DRCC_DVM_446)
+-#define HW_TYPE "MMDVM RB_STM32_DVM(446)"
+-#else
+-#define	HW_TYPE	"MMDVM"
+-#endif
++#define DESCRIPTION              "MMDVM 20180327 (D-Star/DMR/System Fusion/P25/NXDN)"
+ 
+ #if defined(GITVERSION)
+-#define concat(h, a, b, c) h " " a " " b " GitID #" c ""
+-const char HARDWARE[] = concat(HW_TYPE, VERSION, TCXO, GITVERSION);
++#define concat(a, b) a " GitID #" b ""
++const char HARDWARE[] = concat(DESCRIPTION, GITVERSION);
+ #else
+-#define concat(h, a, b, c, d) h " " a " " b " (Build: " c " " d ")"
+-const char HARDWARE[] = concat(HW_TYPE, VERSION, TCXO, __TIME__, __DATE__);
++#define concat(a, b, c) a " (Build: " b " " c ")"
++const char HARDWARE[] = concat(DESCRIPTION, __TIME__, __DATE__);
+ #endif
+ 
+-const uint8_t PROTOCOL_VERSION   = 2U;
++const uint8_t PROTOCOL_VERSION   = 1U;
+ 
+-// Parameters for batching serial data
+-const int      MAX_SERIAL_DATA  = 250;
+-const uint16_t MAX_SERIAL_COUNT = 100U;
+ 
+ CSerialPort::CSerialPort() :
+ m_buffer(),
+ m_ptr(0U),
+ m_len(0U),
+ m_debug(false),
+-m_serialData(),
+-m_lastSerialAvail(0),
+-m_lastSerialAvailCount(0U),
+-m_i2CData()
++m_repeat(),
++#if defined(RPI)
++m_controller()
++#endif
+ {
+ }
+ 
+-void CSerialPort::sendACK(uint8_t type)
++void CSerialPort::sendACK()
+ {
+   uint8_t reply[4U];
+ 
+   reply[0U] = MMDVM_FRAME_START;
+   reply[1U] = 4U;
+   reply[2U] = MMDVM_ACK;
+-  reply[3U] = type;
++  reply[3U] = m_buffer[2U];
+ 
+   writeInt(1U, reply, 4);
+ }
+ 
+-void CSerialPort::sendNAK(uint8_t type, uint8_t err)
++void CSerialPort::sendNAK(uint8_t err)
+ {
+   uint8_t reply[5U];
+ 
+   reply[0U] = MMDVM_FRAME_START;
+   reply[1U] = 5U;
+   reply[2U] = MMDVM_NAK;
+-  reply[3U] = type;
++  reply[3U] = m_buffer[2U];
+   reply[4U] = err;
+ 
+   writeInt(1U, reply, 5);
+@@ -168,50 +131,60 @@
+ {
+   io.resetWatchdog();
+ 
+-  uint8_t reply[30U];
++  uint8_t reply[15U];
+ 
+   // Send all sorts of interesting internal values
+   reply[0U]  = MMDVM_FRAME_START;
+-  reply[1U]  = 20U;
++  reply[1U]  = 11U;
+   reply[2U]  = MMDVM_GET_STATUS;
+ 
+-  reply[3U]  = uint8_t(m_modemState);
++  reply[3U]  = 0x00U;
++  if (m_dstarEnable)
++    reply[3U] |= 0x01U;
++  if (m_dmrEnable)
++    reply[3U] |= 0x02U;
++  if (m_ysfEnable)
++    reply[3U] |= 0x04U;
++  if (m_p25Enable)
++    reply[3U] |= 0x08U;
++  if (m_nxdnEnable)
++    reply[3U] |= 0x10U;
++
++  reply[4U]  = uint8_t(m_modemState);
+ 
+-  reply[4U]  = m_tx  ? 0x01U : 0x00U;
++  reply[5U]  = m_tx  ? 0x01U : 0x00U;
+ 
+   bool adcOverflow;
+   bool dacOverflow;
+   io.getOverflow(adcOverflow, dacOverflow);
+ 
+-  if (adcOverflow)
+-    reply[4U] |= 0x02U;
+-
+-  if (io.hasRXOverflow())
+-    reply[4U] |= 0x04U;
+-
+-  if (io.hasTXOverflow())
+-    reply[4U] |= 0x08U;
+-
+-  if (io.hasLockout())
+-    reply[4U] |= 0x10U;
+-
+-  if (dacOverflow)
+-    reply[4U] |= 0x20U;
++  if (adcOverflow) {
++    LogDebug("ADC Overflow");
++    reply[5U] |= 0x02U; }
++
++  if (io.hasRXOverflow()) {
++    LogDebug("RX Overflow");
++    reply[5U] |= 0x04U; }
++
++  if (io.hasTXOverflow()) {
++    LogDebug("TX Overflow");
++    reply[5U] |= 0x08U; }
++
++  if (io.hasLockout()) {
++    LogDebug("Lockout");
++    reply[5U] |= 0x10U; }
++
++  if (dacOverflow) {
++    LogDebug("DAC Overflow");
++    reply[5U] |= 0x20U; }
+     
+-  reply[4U] |= m_dcd ? 0x40U : 0x00U;
++  reply[5U] |= m_dcd ? 0x40U : 0x00U;
+ 
+-  reply[5U] = 0x00U;
+-
+-#if defined(MODE_DSTAR)
+   if (m_dstarEnable)
+     reply[6U] = dstarTX.getSpace();
+   else
+     reply[6U] = 0U;
+-#else
+-  reply[6U] = 0U;
+-#endif
+ 
+-#if defined(MODE_DMR)
+   if (m_dmrEnable) {
+     if (m_duplex) {
+       reply[7U] = dmrTX.getSpace1();
+@@ -224,70 +197,30 @@
+     reply[7U] = 0U;
+     reply[8U] = 0U;
+   }
+-#else
+-  reply[7U] = 0U;
+-  reply[8U] = 0U;
+-#endif
+ 
+-#if defined(MODE_YSF)
+   if (m_ysfEnable)
+     reply[9U] = ysfTX.getSpace();
+   else
+     reply[9U] = 0U;
+-#else
+-  reply[9U] = 0U;
+-#endif
+ 
+-#if defined(MODE_P25)
+   if (m_p25Enable)
+     reply[10U] = p25TX.getSpace();
+   else
+     reply[10U] = 0U;
+-#else
+-  reply[10U] = 0U;
+-#endif
+ 
+-#if defined(MODE_NXDN)
+   if (m_nxdnEnable)
+     reply[11U] = nxdnTX.getSpace();
+   else
+     reply[11U] = 0U;
+-#else
+-  reply[11U] = 0U;
+-#endif
+-
+-  reply[12U] = 0U;
+-
+-#if defined(MODE_FM)
+-  if (m_fmEnable)
+-    reply[13U] = fm.getSpace();
+-  else
+-    reply[13U] = 0U;
+-#else
+-  reply[13U] = 0U;
+-#endif
+ 
+-#if defined(MODE_POCSAG)
+-  if (m_pocsagEnable)
+-    reply[14U] = pocsagTX.getSpace();
+-  else
+-    reply[14U] = 0U;
+-#else
+-  reply[14U] = 0U;
+-#endif
+-
+-  reply[15U] = 0U;
+-  reply[16U] = 0x00U;
+-  reply[17U] = 0x00U;
+-  reply[18U] = 0x00U;
+-  reply[19U] = 0x00U;
+-
+-  writeInt(1U, reply, 20);
++  writeInt(1U, reply, 12);
+ }
+ 
+ void CSerialPort::getVersion()
+ {
+-  uint8_t reply[200U];
++  uint8_t reply[100U];
++
++  LogDebug("getVersion() invoked");
+ 
+   reply[0U] = MMDVM_FRAME_START;
+   reply[1U] = 0U;
+@@ -295,40 +228,7 @@
+ 
+   reply[3U] = PROTOCOL_VERSION;
+ 
+-  // Return two bytes of mode capabilities
+-  reply[4U] = 0x00U;
+-#if defined(MODE_DSTAR)
+-  reply[4U] |= 0x01U;
+-#endif
+-#if defined(MODE_DMR)
+-  reply[4U] |= 0x02U;
+-#endif
+-#if defined(MODE_YSF)
+-  reply[4U] |= 0x04U;
+-#endif
+-#if defined(MODE_P25)
+-  reply[4U] |= 0x08U;
+-#endif
+-#if defined(MODE_NXDN)
+-  reply[4U] |= 0x10U;
+-#endif
+-#if defined(MODE_FM)
+-  reply[4U] |= 0x40U;
+-#endif
+-
+-  reply[5U] = 0x00U;
+-#if defined(MODE_POCSAG)
+-  reply[5U] |= 0x01U;
+-#endif
+-
+-  // CPU type/manufacturer. 0=Atmel ARM, 1=NXP ARM, 2=St-Micro ARM
+-  reply[6U] = io.getCPU();
+-
+-  // Reserve 16 bytes for the UDID
+-  ::memset(reply + 7U, 0x00U, 16U);
+-  io.getUDID(reply + 7U);
+-
+-  uint8_t count = 23U;
++  uint8_t count = 4U;
+   for (uint8_t i = 0U; HARDWARE[i] != 0x00U; i++, count++)
+     reply[count] = HARDWARE[i];
+ 
+@@ -337,290 +237,102 @@
+   writeInt(1U, reply, count);
+ }
+ 
+-uint8_t CSerialPort::setConfig(const uint8_t* data, uint16_t length)
++uint8_t CSerialPort::setConfig(const uint8_t* data, uint8_t length)
+ {
+-  if (length < 37U)
++
++  LogDebug("setConfig invoked!");
++
++  if (length < 16U)
+     return 4U;
+ 
+-  bool rxInvert        = (data[0U] & 0x01U) == 0x01U;
+-  bool txInvert        = (data[0U] & 0x02U) == 0x02U;
+-  bool pttInvert       = (data[0U] & 0x04U) == 0x04U;
+-#if defined(MODE_YSF)
+-  bool ysfLoDev        = (data[0U] & 0x08U) == 0x08U;
+-#endif
+-  bool useCOSAsLockout = (data[0U] & 0x20U) == 0x20U;
+-  bool simplex         = (data[0U] & 0x80U) == 0x80U;
++  
++
++  bool rxInvert  = (data[0U] & 0x01U) == 0x01U;
++  bool txInvert  = (data[0U] & 0x02U) == 0x02U;
++  bool pttInvert = (data[0U] & 0x04U) == 0x04U;
++  bool ysfLoDev  = (data[0U] & 0x08U) == 0x08U;
++  bool simplex   = (data[0U] & 0x80U) == 0x80U;
+ 
+   m_debug = (data[0U] & 0x10U) == 0x10U;
+ 
+-#if defined(MODE_DSTAR)
+-  bool dstarEnable  = (data[1U] & 0x01U) == 0x01U;
+-#endif
+-#if defined(MODE_DMR)
+-  bool dmrEnable    = (data[1U] & 0x02U) == 0x02U;
+-#endif
+-#if defined(MODE_YSF)
+-  bool ysfEnable    = (data[1U] & 0x04U) == 0x04U;
+-#endif
+-#if defined(MODE_P25)
+-  bool p25Enable    = (data[1U] & 0x08U) == 0x08U;
+-#endif
+-#if defined(MODE_NXDN)
+-  bool nxdnEnable   = (data[1U] & 0x10U) == 0x10U;
+-#endif
+-#if defined(MODE_FM)
+-  bool fmEnable     = (data[1U] & 0x20U) == 0x20U;
+-#endif
+-#if defined(MODE_POCSAG)
+-  bool pocsagEnable = (data[2U] & 0x01U) == 0x01U;
+-#endif
++  bool dstarEnable = (data[1U] & 0x01U) == 0x01U;
++  bool dmrEnable   = (data[1U] & 0x02U) == 0x02U;
++  bool ysfEnable   = (data[1U] & 0x04U) == 0x04U;
++  bool p25Enable   = (data[1U] & 0x08U) == 0x08U;
++  bool nxdnEnable  = (data[1U] & 0x10U) == 0x10U;
+ 
+-  uint8_t txDelay = data[3U];
++  uint8_t txDelay = data[2U];
+   if (txDelay > 50U)
+     return 4U;
+ 
+-  MMDVM_STATE modemState = MMDVM_STATE(data[4U]);
++  MMDVM_STATE modemState = MMDVM_STATE(data[3U]);
+ 
+-  if (modemState != STATE_IDLE && modemState != STATE_DSTAR && modemState != STATE_DMR && modemState != STATE_YSF && modemState != STATE_P25 && modemState != STATE_NXDN && modemState != STATE_POCSAG && modemState != STATE_FM &&
+-      modemState != STATE_DSTARCAL && modemState != STATE_DMRCAL && modemState != STATE_RSSICAL && modemState != STATE_LFCAL && modemState != STATE_DMRCAL1K && modemState != STATE_P25CAL1K && modemState != STATE_DMRDMO1K && modemState != STATE_NXDNCAL1K && modemState != STATE_POCSAGCAL &&
+-      modemState != STATE_FMCAL10K && modemState != STATE_FMCAL12K && modemState != STATE_FMCAL15K && modemState != STATE_FMCAL20K && modemState != STATE_FMCAL25K && modemState != STATE_FMCAL30K)
++  if (modemState != STATE_IDLE && modemState != STATE_DSTAR && modemState != STATE_DMR && modemState != STATE_YSF && modemState != STATE_P25 && modemState != STATE_NXDN && modemState != STATE_DSTARCAL && modemState != STATE_DMRCAL && modemState != STATE_RSSICAL && modemState != STATE_LFCAL && modemState != STATE_DMRCAL1K && modemState != STATE_P25CAL1K && modemState != STATE_DMRDMO1K && modemState != STATE_NXDNCAL1K)
+     return 4U;
+-
+-#if defined(MODE_DSTAR)
+   if (modemState == STATE_DSTAR && !dstarEnable)
+     return 4U;
+-#else
+-  if (modemState == STATE_DSTAR)
+-    return 4U;
+-#endif
+-
+-#if defined(MODE_DMR)
+   if (modemState == STATE_DMR && !dmrEnable)
+     return 4U;
+-#else
+-  if (modemState == STATE_DMR)
+-    return 4U;
+-#endif
+-
+-#if defined(MODE_YSF)
+   if (modemState == STATE_YSF && !ysfEnable)
+     return 4U;
+-#else
+-  if (modemState == STATE_YSF)
+-    return 4U;
+-#endif
+-
+-#if defined(MODE_P25)
+   if (modemState == STATE_P25 && !p25Enable)
+     return 4U;
+-#else
+-  if (modemState == STATE_P25)
+-    return 4U;
+-#endif
+-
+-#if defined(MODE_NXDN)
+   if (modemState == STATE_NXDN && !nxdnEnable)
+     return 4U;
+-#else
+-  if (modemState == STATE_NXDN)
+-    return 4U;
+-#endif
+ 
+-#if defined(MODE_POCSAG)
+-  if (modemState == STATE_POCSAG && !pocsagEnable)
+-    return 4U;
+-#else
+-  if (modemState == STATE_POCSAG)
+-    return 4U;
+-#endif
++  uint8_t rxLevel = data[4U];
+ 
+-#if defined(MODE_FM)
+-  if (modemState == STATE_FM && !fmEnable)
+-    return 4U;
+-#else
+-  if (modemState == STATE_FM)
+-    return 4U;
+-#endif
+-
+-  int16_t txDCOffset = int16_t(data[5U]) - 128;
+-  int16_t rxDCOffset = int16_t(data[6U]) - 128;
+-
+-  uint8_t rxLevel = data[7U];
+-
+-  uint8_t cwIdTXLevel   = data[8U];
+-  uint8_t dstarTXLevel  = data[9U];
+-  uint8_t dmrTXLevel    = data[10U];
+-  uint8_t ysfTXLevel    = data[11U];
+-  uint8_t p25TXLevel    = data[12U];
+-  uint8_t nxdnTXLevel   = data[13U];
+-  uint8_t pocsagTXLevel = data[15U];
+-  uint8_t fmTXLevel     = data[16U];
+-
+-#if defined(MODE_YSF)
+-  uint8_t ysfTXHang     = data[20U];
+-#endif
+-#if defined(MODE_P25)
+-  uint8_t p25TXHang     = data[21U];
+-#endif
+-#if defined(MODE_NXDN)
+-  uint8_t nxdnTXHang    = data[22U];
+-#endif
+-
+-#if defined(MODE_DMR)
+-  uint8_t colorCode = data[26U];
++  uint8_t colorCode = data[6U];
+   if (colorCode > 15U)
+     return 4U;
+ 
+-  uint8_t dmrDelay = data[27U];
+-#endif
+-
+-  setMode(modemState);
++  uint8_t dmrDelay = data[7U];
+ 
+-  m_duplex       = !simplex;
++  uint8_t cwIdTXLevel  = data[5U];
++  uint8_t dstarTXLevel = data[9U];
++  uint8_t dmrTXLevel   = data[10U];
++  uint8_t ysfTXLevel   = data[11U];
++  uint8_t p25TXLevel   = data[12U];
++
++  int16_t txDCOffset = int16_t(data[13U]) - 128;
++  int16_t rxDCOffset = int16_t(data[14U]) - 128;
++
++  uint8_t nxdnTXLevel  = data[15U];
++
++  m_modemState  = modemState;
++
++  m_dstarEnable = dstarEnable;
++  m_dmrEnable   = dmrEnable;
++  m_ysfEnable   = ysfEnable;
++  m_p25Enable   = p25Enable;
++  m_nxdnEnable  = nxdnEnable;
++  m_duplex      = !simplex;
+ 
+-#if defined(MODE_DSTAR)
+-  m_dstarEnable  = dstarEnable;
+   dstarTX.setTXDelay(txDelay);
+-#endif
+-#if defined(MODE_DMR)
+-  m_dmrEnable    = dmrEnable;
++  ysfTX.setTXDelay(txDelay);
++  p25TX.setTXDelay(txDelay);
+   dmrDMOTX.setTXDelay(txDelay);
++  nxdnTX.setTXDelay(txDelay);
+ 
+   dmrTX.setColorCode(colorCode);
+   dmrRX.setColorCode(colorCode);
+   dmrRX.setDelay(dmrDelay);
+   dmrDMORX.setColorCode(colorCode);
+   dmrIdleRX.setColorCode(colorCode);
+-#endif
+-#if defined(MODE_YSF)
+-  m_ysfEnable    = ysfEnable;
+-  ysfTX.setTXDelay(txDelay);
+-  ysfTX.setParams(ysfLoDev, ysfTXHang);
+-#endif
+-#if defined(MODE_P25)
+-  m_p25Enable    = p25Enable;
+-  p25TX.setTXDelay(txDelay);
+-  p25TX.setParams(p25TXHang);
+-#endif
+-#if defined(MODE_NXDN)
+-  m_nxdnEnable   = nxdnEnable;
+-  nxdnTX.setTXDelay(txDelay);
+-  nxdnTX.setParams(nxdnTXHang);
+-#endif
+-#if defined(MODE_POCSAG)
+-  m_pocsagEnable = pocsagEnable;
+-  pocsagTX.setTXDelay(txDelay);
+-#endif
+-#if defined(MODE_FM)
+-  m_fmEnable     = fmEnable;
+-#endif
+ 
+-  io.setParameters(rxInvert, txInvert, pttInvert, rxLevel, cwIdTXLevel, dstarTXLevel, dmrTXLevel, ysfTXLevel, p25TXLevel, nxdnTXLevel, pocsagTXLevel, fmTXLevel, txDCOffset, rxDCOffset, useCOSAsLockout);
++  ysfTX.setLoDev(ysfLoDev);
++
++  io.setParameters(rxInvert, txInvert, pttInvert, rxLevel, cwIdTXLevel, dstarTXLevel, dmrTXLevel, ysfTXLevel, p25TXLevel, nxdnTXLevel, txDCOffset, rxDCOffset);
+ 
+   io.start();
+ 
+   return 0U;
+ }
+ 
+-#if defined(MODE_FM)
+-uint8_t CSerialPort::setFMParams1(const uint8_t* data, uint16_t length)
+-{
+-  if (length < 8U)
+-    return 4U;
+-
+-  uint8_t  speed     = data[0U];;
+-  uint16_t frequency = data[1U] * 10U;
+-  uint8_t  time      = data[2U];
+-  uint8_t  holdoff   = data[3U];
+-  uint8_t  highLevel = data[4U];
+-  uint8_t  lowLevel  = data[5U];
+-
+-  bool callAtStart = (data[6U] & 0x01U) == 0x01U;
+-  bool callAtEnd   = (data[6U] & 0x02U) == 0x02U;
+-  bool callAtLatch = (data[6U] & 0x04U) == 0x04U;
+-
+-  char callsign[50U];
+-  uint8_t n = 0U;
+-  for (uint8_t i = 7U; i < length; i++, n++)
+-    callsign[n] = data[i];
+-  callsign[n] = '\0';
+-
+-  return fm.setCallsign(callsign, speed, frequency, time, holdoff, highLevel, lowLevel, callAtStart, callAtEnd, callAtLatch);
+-}
+-
+-uint8_t CSerialPort::setFMParams2(const uint8_t* data, uint16_t length)
+-{
+-  if (length < 6U)
+-    return 4U;
+-
+-  uint8_t  speed     = data[0U];
+-  uint16_t frequency = data[1U] * 10U;
+-  uint8_t  minTime   = data[2U];
+-  uint16_t delay     = data[3U] * 10U;
+-  uint8_t  level     = data[4U];
+-
+-  char ack[50U];
+-  uint8_t n = 0U;
+-  for (uint8_t i = 5U; i < length; i++, n++)
+-    ack[n] = data[i];
+-  ack[n] = '\0';
+-
+-  return fm.setAck(ack, speed, frequency, minTime, delay, level);
+-}
+-
+-uint8_t CSerialPort::setFMParams3(const uint8_t* data, uint16_t length)
+-{
+-  if (length < 14U)
+-    return 4U;
+-
+-  uint16_t timeout        = data[0U] * 5U;
+-  uint8_t  timeoutLevel   = data[1U];
+-
+-  uint8_t  ctcssFrequency     = data[2U];
+-  uint8_t  ctcssHighThreshold = data[3U];
+-  uint8_t  ctcssLowThreshold  = data[4U];
+-  uint8_t  ctcssLevel         = data[5U];
+-
+-  uint8_t  kerchunkTime   = data[6U];
+-  uint8_t  hangTime       = data[7U];
+-
+-  uint8_t  accessMode     = data[8U] & 0x0FU;
+-  bool     linkMode       = (data[8U] & 0x20U) == 0x20U;
+-  bool     noiseSquelch   = (data[8U] & 0x40U) == 0x40U;
+-  bool     cosInvert      = (data[8U] & 0x80U) == 0x80U;
+-
+-  uint8_t  rfAudioBoost   = data[9U];
+-  uint8_t  maxDev         = data[10U];
+-  uint8_t  rxLevel        = data[11U];
+-
+-  uint8_t  squelchHighThreshold = data[12U];
+-  uint8_t  squelchLowThreshold  = data[13U];
+-
+-  return fm.setMisc(timeout, timeoutLevel, ctcssFrequency, ctcssHighThreshold, ctcssLowThreshold, ctcssLevel, kerchunkTime, hangTime, accessMode, linkMode, cosInvert, noiseSquelch, squelchHighThreshold, squelchLowThreshold, rfAudioBoost, maxDev, rxLevel);
+-}
+-
+-uint8_t CSerialPort::setFMParams4(const uint8_t* data, uint16_t length)
+-{
+-  if (length < 4U)
+-    return 4U;
+-
+-  uint8_t  audioBoost = data[0U];
+-  uint8_t  speed      = data[1U];
+-  uint16_t frequency  = data[2U] * 10U;
+-  uint8_t  level      = data[3U];
+-
+-  char ack[50U];
+-  uint8_t n = 0U;
+-  for (uint8_t i = 4U; i < length; i++, n++)
+-    ack[n] = data[i];
+-  ack[n] = '\0';
+-
+-  return fm.setExt(ack, audioBoost, speed, frequency, level);
+-}
+-#endif
+-
+-uint8_t CSerialPort::setMode(const uint8_t* data, uint16_t length)
++uint8_t CSerialPort::setMode(const uint8_t* data, uint8_t length)
+ {
++  LogDebug("setMode() invoked!");
++  
+   if (length < 1U)
+     return 4U;
+ 
+@@ -629,66 +341,18 @@
+   if (modemState == m_modemState)
+     return 0U;
+ 
+-  if (modemState != STATE_IDLE && modemState != STATE_DSTAR && modemState != STATE_DMR && modemState != STATE_YSF && modemState != STATE_P25 && modemState != STATE_NXDN && modemState != STATE_POCSAG && modemState != STATE_FM &&
+-      modemState != STATE_DSTARCAL && modemState != STATE_DMRCAL && modemState != STATE_RSSICAL && modemState != STATE_LFCAL && modemState != STATE_DMRCAL1K && modemState != STATE_P25CAL1K && modemState != STATE_DMRDMO1K && modemState != STATE_NXDNCAL1K && modemState != STATE_POCSAGCAL &&
+-      modemState != STATE_FMCAL10K  && modemState != STATE_FMCAL12K && modemState != STATE_FMCAL15K && modemState != STATE_FMCAL20K && modemState != STATE_FMCAL25K && modemState != STATE_FMCAL30K)
++  if (modemState != STATE_IDLE && modemState != STATE_DSTAR && modemState != STATE_DMR && modemState != STATE_YSF && modemState != STATE_P25 && modemState != STATE_NXDN && modemState != STATE_DSTARCAL && modemState != STATE_DMRCAL && modemState != STATE_RSSICAL && modemState != STATE_LFCAL && modemState != STATE_DMRCAL1K && modemState != STATE_P25CAL1K && modemState != STATE_DMRDMO1K && modemState != STATE_NXDNCAL1K)
+     return 4U;
+-
+-#if defined(MODE_DSTAR)
+   if (modemState == STATE_DSTAR && !m_dstarEnable)
+     return 4U;
+-#else
+-  if (modemState == STATE_DSTAR)
+-    return 4U;
+-#endif
+-
+-#if defined(MODE_DMR)
+   if (modemState == STATE_DMR && !m_dmrEnable)
+     return 4U;
+-#else
+-  if (modemState == STATE_DMR)
+-    return 4U;
+-#endif
+-
+-#if defined(MODE_YSF)
+   if (modemState == STATE_YSF && !m_ysfEnable)
+     return 4U;
+-#else
+-  if (modemState == STATE_YSF)
+-    return 4U;
+-#endif
+-
+-#if defined(MODE_P25)
+   if (modemState == STATE_P25 && !m_p25Enable)
+     return 4U;
+-#else
+-  if (modemState == STATE_P25)
+-    return 4U;
+-#endif
+-
+-#if defined(MODE_NXDN)
+   if (modemState == STATE_NXDN && !m_nxdnEnable)
+     return 4U;
+-#else
+-  if (modemState == STATE_NXDN)
+-    return 4U;
+-#endif
+-
+-#if defined(MODE_POCSAG)
+-  if (modemState == STATE_POCSAG && !m_pocsagEnable)
+-    return 4U;
+-#else
+-  if (modemState == STATE_POCSAG)
+-    return 4U;
+-#endif
+-
+-#if defined(MODE_FM)
+-  if (modemState == STATE_FM && !m_fmEnable)
+-    return 4U;
+-#else
+-  if (modemState == STATE_FM)
+-    return 4U;
+-#endif
+ 
+   setMode(modemState);
+ 
+@@ -697,57 +361,174 @@
+ 
+ void CSerialPort::setMode(MMDVM_STATE modemState)
+ {
++    /*
+   switch (modemState) {
+-    case STATE_DSTAR:
+-      DEBUG1("Mode set to D-Star");
+-      break;
+     case STATE_DMR:
+       DEBUG1("Mode set to DMR");
++      dstarRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
++      break;
++    case STATE_DSTAR:
++      DEBUG1("Mode set to D-Star");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
+       break;
+     case STATE_YSF:
+       DEBUG1("Mode set to System Fusion");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
+       break;
+     case STATE_P25:
+       DEBUG1("Mode set to P25");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      ysfRX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
+       break;
+     case STATE_NXDN:
+       DEBUG1("Mode set to NXDN");
+-      break;
+-    case STATE_POCSAG:
+-      DEBUG1("Mode set to POCSAG");
+-      break;
+-    case STATE_FM:
+-      DEBUG1("Mode set to FM");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      cwIdTX.reset();
+       break;
+     case STATE_DSTARCAL:
+       DEBUG1("Mode set to D-Star Calibrate");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
+       break;
+     case STATE_DMRCAL:
+       DEBUG1("Mode set to DMR Calibrate");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
+       break;
+     case STATE_RSSICAL:
+       DEBUG1("Mode set to RSSI Calibrate");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
+       break;
+     case STATE_LFCAL:
+       DEBUG1("Mode set to 80 Hz Calibrate");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
++      break;
++    case STATE_DMRCAL1K:
++      DEBUG1("Mode set to DMR BS 1031 Hz Calibrate");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
+       break;
+-    case STATE_FMCAL10K:
+-      DEBUG1("Mode set to FM 10Khz Calibrate");
++    case STATE_P25CAL1K:
++      DEBUG1("Mode set to P25 1011 Hz Calibrate");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
+       break;
+-    case STATE_FMCAL12K:
+-      DEBUG1("Mode set to FM 12.5Khz Calibrate");
++    case STATE_DMRDMO1K:
++      DEBUG1("Mode set to DMR MS 1031 Hz Calibrate");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
+       break;
+-    case STATE_FMCAL15K:
+-      DEBUG1("Mode set to FM 15Khz Calibrate");
++    case STATE_NXDNCAL1K:
++      DEBUG1("Mode set to NXDN 1031 Hz Calibrate");
++      dmrIdleRX.reset();
++      dmrDMORX.reset();
++      dmrRX.reset();
++      dstarRX.reset();
++      ysfRX.reset();
++      p25RX.reset();
++      nxdnRX.reset();
++      cwIdTX.reset();
+       break;
+-    case STATE_FMCAL20K:
+-      DEBUG1("Mode set to FM 20Khz Calibrate");
++    default:
++      DEBUG1("Mode set to Idle");
++      // STATE_IDLE
+       break;
+-    case STATE_FMCAL25K:
+-      DEBUG1("Mode set to FM 10Khz Calibrate");
++  }
++  */
++    switch (modemState) {
++    case STATE_DMR:
++      DEBUG1("Mode set to DMR");
+       break;
+-    case STATE_FMCAL30K:
+-      DEBUG1("Mode set to FM 30Khz Calibrate");
++    case STATE_DSTAR:
++      DEBUG1("Mode set to D-Star");
++      break;
++    case STATE_YSF:
++      DEBUG1("Mode set to System Fusion");
++      break;
++    case STATE_P25:
++      DEBUG1("Mode set to P25");
++      break;
++    case STATE_NXDN:
++      DEBUG1("Mode set to NXDN");
++      break;
++    case STATE_DSTARCAL:
++      DEBUG1("Mode set to D-Star Calibrate");
++      break;
++    case STATE_DMRCAL:
++      DEBUG1("Mode set to DMR Calibrate");
++      break;
++    case STATE_RSSICAL:
++      DEBUG1("Mode set to RSSI Calibrate");
+       break;
+     case STATE_P25CAL1K:
+       DEBUG1("Mode set to P25 1011 Hz Calibrate");
+@@ -758,98 +539,68 @@
+     case STATE_NXDNCAL1K:
+       DEBUG1("Mode set to NXDN 1031 Hz Calibrate");
+       break;
+-    case STATE_POCSAGCAL:
+-      DEBUG1("Mode set to POCSAG Calibrate");
+-      break;
+     default:        // STATE_IDLE
+       DEBUG1("Mode set to Idle");
+       break;
+   }
+ 
+-#if defined(MODE_DSTAR)
+   if (modemState != STATE_DSTAR)
+     dstarRX.reset();
+-#endif
+ 
+-#if defined(MODE_DMR)
+   if (modemState != STATE_DMR) {
+     dmrIdleRX.reset();
+     dmrDMORX.reset();
+     dmrRX.reset();
+   }
+-#endif
+ 
+-#if defined(MODE_YSF)
+   if (modemState != STATE_YSF)
+     ysfRX.reset();
+-#endif
+ 
+-#if defined(MODE_P25)
+   if (modemState != STATE_P25)
+     p25RX.reset();
+-#endif
+ 
+-#if defined(MODE_NXDN)
+   if (modemState != STATE_NXDN)
+     nxdnRX.reset();
+-#endif
+-
+-#if defined(MODE_FM)
+-  if (modemState != STATE_FM)
+-    fm.reset();
+-#endif
+ 
+-  cwIdTX.reset();
++  m_modemState = modemState;
+ 
+   io.setMode(modemState);
+ }
+ 
+ void CSerialPort::start()
+ {
+-  beginInt(1U, SERIAL_SPEED);
++  beginInt(1U, 115200);
+ 
+ #if defined(SERIAL_REPEATER)
+-  #if defined(SERIAL_REPEATER_BAUD_RATE)
+-    beginInt(3U, SERIAL_REPEATER_BAUD_RATE);
+-  #else
+-    beginInt(3U, 9600);
+-  #endif
+-#endif
+-#if defined(I2C_REPEATER)
+-  beginInt(10U, 9600);
++  beginInt(3U, 9600);
+ #endif
+ }
+ 
+ void CSerialPort::process()
+ {
+-  while (availableForReadInt(1U)) {
++  while (availableInt(1U)) {
+     uint8_t c = readInt(1U);
+ 
++    //LogDebug("Read char: %x : %d", c, m_ptr);
++
+     if (m_ptr == 0U) {
+       if (c == MMDVM_FRAME_START) {
++
++	//LogDebug("Frame Start Detected!");
++
+         // Handle the frame start correctly
+         m_buffer[0U] = c;
+         m_ptr = 1U;
+         m_len = 0U;
+-      } else {
++      }
++      else {
+         m_ptr = 0U;
+         m_len = 0U;
+       }
+     } else if (m_ptr == 1U) {
+-      // Handle the frame length, 1/2
++      // Handle the frame length
+       m_len = m_buffer[m_ptr] = c;
+       m_ptr = 2U;
+-    } else if (m_ptr == 2U) {
+-      // Handle the frame length, 2/2
+-      m_buffer[m_ptr] = c;
+-      m_ptr = 3U;
+-
+-      if (m_len == 0U)
+-        m_len = c + 255U;
+-
+-      // The full packet has been received, process it
+-      if (m_ptr == m_len)
+-        processMessage(m_buffer[2U], m_buffer + 3U, m_len - 3U);
+     } else {
+       // Any other bytes are added to the buffer
+       m_buffer[m_ptr] = c;
+@@ -857,10 +608,261 @@
+ 
+       // The full packet has been received, process it
+       if (m_ptr == m_len) {
+-        if (m_len > 255U)
+-          processMessage(m_buffer[3U], m_buffer + 4U, m_len - 4U);
+-        else
+-          processMessage(m_buffer[2U], m_buffer + 3U, m_len - 3U);
++        uint8_t err = 2U;
++
++        switch (m_buffer[2U]) {
++          case MMDVM_GET_STATUS:
++            getStatus();
++            break;
++
++          case MMDVM_GET_VERSION:
++            getVersion();
++            break;
++
++          case MMDVM_SET_CONFIG:
++            err = setConfig(m_buffer + 3U, m_len - 3U);
++            if (err == 0U)
++              sendACK();
++            else
++              sendNAK(err);
++            break;
++
++          case MMDVM_SET_MODE:
++            err = setMode(m_buffer + 3U, m_len - 3U);
++            if (err == 0U)
++              sendACK();
++            else
++              sendNAK(err);
++            break;
++
++          case MMDVM_SET_FREQ:
++            sendACK();
++            LogDebug("set freq!");
++            break;
++
++          case MMDVM_CAL_DATA:
++            if (m_modemState == STATE_DSTARCAL)
++              err = calDStarTX.write(m_buffer + 3U, m_len - 3U);
++            if (m_modemState == STATE_DMRCAL || m_modemState == STATE_LFCAL || m_modemState == STATE_DMRCAL1K || m_modemState == STATE_DMRDMO1K)
++              err = calDMR.write(m_buffer + 3U, m_len - 3U);
++            if (m_modemState == STATE_P25CAL1K)
++              err = calP25.write(m_buffer + 3U, m_len - 3U);
++            if (m_modemState == STATE_NXDNCAL1K)
++              err = calNXDN.write(m_buffer + 3U, m_len - 3U);
++            if (err == 0U) {
++              sendACK();
++            } else {
++              DEBUG2("Received invalid calibration data", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_SEND_CWID:
++            err = 5U;
++            if (m_modemState == STATE_IDLE)
++              err = cwIdTX.write(m_buffer + 3U, m_len - 3U);
++            if (err != 0U) {
++              DEBUG2("Invalid CW Id data", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_DSTAR_HEADER:
++            if (m_dstarEnable) {
++              if (m_modemState == STATE_IDLE || m_modemState == STATE_DSTAR)
++                err = dstarTX.writeHeader(m_buffer + 3U, m_len - 3U);
++            }
++            if (err == 0U) {
++              if (m_modemState == STATE_IDLE)
++                setMode(STATE_DSTAR);
++            } else {
++              DEBUG2("Received invalid D-Star header", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_DSTAR_DATA:
++            if (m_dstarEnable) {
++              if (m_modemState == STATE_IDLE || m_modemState == STATE_DSTAR)
++                err = dstarTX.writeData(m_buffer + 3U, m_len - 3U);
++            }
++            if (err == 0U) {
++              if (m_modemState == STATE_IDLE)
++                setMode(STATE_DSTAR);
++            } else {
++              DEBUG2("Received invalid D-Star data", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_DSTAR_EOT:
++            if (m_dstarEnable) {
++              if (m_modemState == STATE_IDLE || m_modemState == STATE_DSTAR)
++                err = dstarTX.writeEOT();
++            }
++            if (err == 0U) {
++              if (m_modemState == STATE_IDLE)
++                setMode(STATE_DSTAR);
++            } else {
++              DEBUG2("Received invalid D-Star EOT", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_DMR_DATA1:
++ 	    //DEBUG2("Inside DMR DATA1 - len:%d", m_len - 3U);	
++ 	    if (m_dmrEnable) {
++              if (m_modemState == STATE_IDLE || m_modemState == STATE_DMR) {
++                if (m_duplex)
++                  err = dmrTX.writeData1(m_buffer + 3U, m_len - 3U);
++              }
++            }
++            if (err == 0U) {
++              if (m_modemState == STATE_IDLE)
++                setMode(STATE_DMR);
++            } else {
++              DEBUG2("Received invalid DMR data", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_DMR_DATA2:
++	    //DEBUG2("Inside DMR DATA2 - len: %d", m_len - 3U);
++            if (m_dmrEnable) {
++              if (m_modemState == STATE_IDLE || m_modemState == STATE_DMR) {
++                if (m_duplex)
++                  err = dmrTX.writeData2(m_buffer + 3U, m_len - 3U);
++                else
++                  err = dmrDMOTX.writeData(m_buffer + 3U, m_len - 3U);
++              }
++            }
++            if (err == 0U) {
++              if (m_modemState == STATE_IDLE)
++                setMode(STATE_DMR);
++            } else {
++              DEBUG2("Received invalid DMR data", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_DMR_START:
++	    //DEBUG1("Inside DMR START");
++            if (m_dmrEnable) {
++              err = 4U;
++              if (m_len == 4U) {
++                if (m_buffer[3U] == 0x01U && m_modemState == STATE_DMR) {
++                  if (!m_tx)
++                    dmrTX.setStart(true);
++                  err = 0U;
++                } else if (m_buffer[3U] == 0x00U && m_modemState == STATE_DMR) {
++                  if (m_tx)
++                    dmrTX.setStart(false);
++                  err = 0U;
++                }
++              }
++            }
++            if (err != 0U) {
++              DEBUG2("Received invalid DMR start", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_DMR_SHORTLC:
++            //DEBUG1("Inside DMR SHORTLC");
++            if (m_dmrEnable)
++              err = dmrTX.writeShortLC(m_buffer + 3U, m_len - 3U);
++            if (err != 0U) {
++              DEBUG2("Received invalid DMR Short LC", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_DMR_ABORT:
++            //DEBUG1("Inside DMR ABORT");
++            if (m_dmrEnable)
++              err = dmrTX.writeAbort(m_buffer + 3U, m_len - 3U);
++            if (err != 0U) {
++              DEBUG2("Received invalid DMR Abort", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_YSF_DATA:
++            if (m_ysfEnable) {
++              if (m_modemState == STATE_IDLE || m_modemState == STATE_YSF)
++                err = ysfTX.writeData(m_buffer + 3U, m_len - 3U);
++            }
++            if (err == 0U) {
++              if (m_modemState == STATE_IDLE)
++                setMode(STATE_YSF);
++            } else {
++              DEBUG2("Received invalid System Fusion data", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_P25_HDR:
++            if (m_p25Enable) {
++              if (m_modemState == STATE_IDLE || m_modemState == STATE_P25)
++                err = p25TX.writeData(m_buffer + 3U, m_len - 3U);
++            }
++            if (err == 0U) {
++              if (m_modemState == STATE_IDLE)
++                setMode(STATE_P25);
++            } else {
++              DEBUG2("Received invalid P25 header", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_P25_LDU:
++            if (m_p25Enable) {
++              if (m_modemState == STATE_IDLE || m_modemState == STATE_P25)
++                err = p25TX.writeData(m_buffer + 3U, m_len - 3U);
++            }
++            if (err == 0U) {
++              if (m_modemState == STATE_IDLE)
++                setMode(STATE_P25);
++            } else {
++              DEBUG2("Received invalid P25 LDU", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_NXDN_DATA:
++            if (m_nxdnEnable) {
++              if (m_modemState == STATE_IDLE || m_modemState == STATE_NXDN)
++                err = nxdnTX.writeData(m_buffer + 3U, m_len - 3U);
++            }
++            if (err == 0U) {
++              if (m_modemState == STATE_IDLE)
++                setMode(STATE_NXDN);
++            } else {
++              DEBUG2("Received invalid NXDN data", err);
++              sendNAK(err);
++            }
++            break;
++
++          case MMDVM_TRANSPARENT:
++            // Do nothing on the MMDVM.
++            break;
++
++#if defined(SERIAL_REPEATER)
++          case MMDVM_SERIAL: {
++            for (uint8_t i = 3U; i < m_len; i++)
++              m_repeat.put(m_buffer[i]);
++            }
++            break;
++#endif
++
++          default:
++            // Handle this, send a NAK back
++            sendNAK(1U);
++            break;
++        }
++
++        m_ptr = 0U;
++        m_len = 0U;
+       }
+     }
+   }
+@@ -872,424 +874,24 @@
+ 
+ #if defined(SERIAL_REPEATER)
+   // Write any outgoing serial data
+-  uint16_t serialSpace = m_serialData.getData();
+-  if (serialSpace > 0U) {
++  uint16_t space = m_repeat.getData();
++  if (space > 0U) {
+     int avail = availableForWriteInt(3U);
+-    if (avail < serialSpace)
+-      serialSpace = avail;
++    if (avail < space)
++      space = avail;
+ 
+-    for (uint16_t i = 0U; i < serialSpace; i++) {
+-      uint8_t c = 0U;
+-      m_serialData.get(c);
++    for (uint16_t i = 0U; i < space; i++) {
++      uint8_t c = m_repeat.get();
+       writeInt(3U, &c, 1U);
+     }
+   }
+ 
+-  // Read any incoming serial data, and send out in batches
+-  int serialAvail = availableForReadInt(3U);
+-  if ((serialAvail > 0 && serialAvail == m_lastSerialAvail && m_lastSerialAvailCount >= MAX_SERIAL_COUNT) || (serialAvail >= MAX_SERIAL_DATA)) {
+-    uint8_t buffer[MAX_SERIAL_DATA];
+-    for (int i = 0; i < serialAvail && i < MAX_SERIAL_DATA; i++) {
+-      buffer[i] = readInt(3U);
+-      m_lastSerialAvail--;
+-    }
+-    writeSerialData(buffer, serialAvail - m_lastSerialAvail);
+-    m_lastSerialAvailCount = 0U;
+-  } else if (serialAvail > 0 && serialAvail == m_lastSerialAvail) {
+-    m_lastSerialAvailCount++;
+-  } else {
+-    m_lastSerialAvail      = serialAvail;
+-    m_lastSerialAvailCount = 0U;
+-  }
+-#endif
+-
+-#if defined(I2C_REPEATER)
+-  // Write any outgoing serial data
+-  uint16_t i2CSpace = m_i2CData.getData();
+-  if (i2CSpace > 0U) {
+-    int avail = availableForWriteInt(10U);
+-    if (avail < i2CSpace)
+-      i2CSpace = avail;
+-
+-    for (uint16_t i = 0U; i < i2CSpace; i++) {
+-      uint8_t c = 0U;
+-      m_i2CData.get(c);
+-      writeInt(10U, &c, 1U);
+-    }
+-  }
++  // Read any incoming serial data
++  while (availableInt(3U))
++    readInt(3U);
+ #endif
+ }
+ 
+-void CSerialPort::processMessage(uint8_t type, const uint8_t* buffer, uint16_t length)
+-{
+-  uint8_t err = 2U;
+-
+-  switch (type) {
+-    case MMDVM_GET_STATUS:
+-      getStatus();
+-      break;
+-
+-    case MMDVM_GET_VERSION:
+-      getVersion();
+-      break;
+-
+-    case MMDVM_SET_CONFIG:
+-      err = setConfig(buffer, length);
+-      if (err == 0U)
+-        sendACK(type);
+-      else
+-        sendNAK(type, err);
+-      break;
+-
+-    case MMDVM_SET_MODE:
+-      err = setMode(buffer, length);
+-      if (err == 0U)
+-        sendACK(type);
+-      else
+-        sendNAK(type, err);
+-      break;
+-
+-    case MMDVM_SET_FREQ:
+-      sendACK(type);
+-      break;
+-
+-#if defined(MODE_FM)
+-    case MMDVM_FM_PARAMS1:
+-      err = setFMParams1(buffer, length);
+-      if (err == 0U) {
+-        sendACK(type);
+-      } else {
+-        DEBUG2("Received invalid FM params 1", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_FM_PARAMS2:
+-      err = setFMParams2(buffer, length);
+-      if (err == 0U) {
+-        sendACK(type);
+-      } else {
+-        DEBUG2("Received invalid FM params 2", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_FM_PARAMS3:
+-      err = setFMParams3(buffer, length);
+-      if (err == 0U) {
+-        sendACK(type);
+-      } else {
+-        DEBUG2("Received invalid FM params 3", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_FM_PARAMS4:
+-      err = setFMParams4(buffer, length);
+-      if (err == 0U) {
+-        sendACK(type);
+-      } else {
+-        DEBUG2("Received invalid FM params 4", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-#else
+-    case MMDVM_FM_PARAMS1:
+-    case MMDVM_FM_PARAMS2:
+-    case MMDVM_FM_PARAMS3:
+-    case MMDVM_FM_PARAMS4:
+-      sendACK(type);
+-      break;
+-#endif
+-
+-    case MMDVM_CAL_DATA:
+-#if defined(MODE_DSTAR)
+-      if (m_modemState == STATE_DSTARCAL)
+-        err = calDStarTX.write(buffer, length);
+-#endif
+-#if defined(MODE_DMR)
+-      if (m_modemState == STATE_DMRCAL || m_modemState == STATE_LFCAL || m_modemState == STATE_DMRCAL1K || m_modemState == STATE_DMRDMO1K)
+-        err = calDMR.write(buffer, length);
+-#endif
+-#if defined(MODE_FM)
+-      if (m_modemState == STATE_FMCAL10K || m_modemState == STATE_FMCAL12K || m_modemState == STATE_FMCAL15K || m_modemState == STATE_FMCAL20K || m_modemState == STATE_FMCAL25K || m_modemState == STATE_FMCAL30K)
+-        err = calFM.write(buffer, length);
+-#endif
+-#if defined(MODE_P25)
+-      if (m_modemState == STATE_P25CAL1K)
+-        err = calP25.write(buffer, length);
+-#endif
+-#if defined(MODE_NXDN)
+-      if (m_modemState == STATE_NXDNCAL1K)
+-        err = calNXDN.write(buffer, length);
+-#endif
+-#if defined(MODE_POCSAG)
+-      if (m_modemState == STATE_POCSAGCAL)
+-        err = calPOCSAG.write(buffer, length);
+-#endif
+-      if (err == 0U) {
+-        sendACK(type);
+-      } else {
+-        DEBUG2("Received invalid calibration data", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_SEND_CWID:
+-      err = 5U;
+-      if (m_modemState == STATE_IDLE)
+-        err = cwIdTX.write(buffer, length);
+-      if (err != 0U) {
+-        DEBUG2("Invalid CW Id data", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-#if defined(MODE_DSTAR)
+-    case MMDVM_DSTAR_HEADER:
+-      if (m_dstarEnable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_DSTAR)
+-          err = dstarTX.writeHeader(buffer, length);
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_DSTAR);
+-      } else {
+-        DEBUG2("Received invalid D-Star header", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_DSTAR_DATA:
+-      if (m_dstarEnable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_DSTAR)
+-          err = dstarTX.writeData(buffer, length);
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_DSTAR);
+-      } else {
+-        DEBUG2("Received invalid D-Star data", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_DSTAR_EOT:
+-      if (m_dstarEnable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_DSTAR)
+-          err = dstarTX.writeEOT();
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_DSTAR);
+-      } else {
+-        DEBUG2("Received invalid D-Star EOT", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-#endif
+-
+-#if defined(MODE_DMR)
+-    case MMDVM_DMR_DATA1:
+-      if (m_dmrEnable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_DMR) {
+-          if (m_duplex)
+-            err = dmrTX.writeData1(buffer, length);
+-        }
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_DMR);
+-      } else {
+-        DEBUG2("Received invalid DMR data", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_DMR_DATA2:
+-      if (m_dmrEnable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_DMR) {
+-          if (m_duplex)
+-            err = dmrTX.writeData2(buffer, length);
+-          else
+-            err = dmrDMOTX.writeData(buffer, length);
+-        }
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_DMR);
+-      } else {
+-        DEBUG2("Received invalid DMR data", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_DMR_START:
+-      if (m_dmrEnable) {
+-        err = 4U;
+-        if (length == 1U) {
+-          if (buffer[0U] == 0x01U && m_modemState == STATE_DMR) {
+-            if (!m_tx)
+-              dmrTX.setStart(true);
+-            err = 0U;
+-          } else if (buffer[0U] == 0x00U && m_modemState == STATE_DMR) {
+-            if (m_tx)
+-              dmrTX.setStart(false);
+-            err = 0U;
+-          }
+-        }
+-      }
+-      if (err != 0U) {
+-        DEBUG2("Received invalid DMR start", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_DMR_SHORTLC:
+-      if (m_dmrEnable)
+-        err = dmrTX.writeShortLC(buffer, length);
+-      if (err != 0U) {
+-        DEBUG2("Received invalid DMR Short LC", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_DMR_ABORT:
+-      if (m_dmrEnable)
+-        err = dmrTX.writeAbort(buffer, length);
+-      if (err != 0U) {
+-        DEBUG2("Received invalid DMR Abort", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-#endif
+-
+-#if defined(MODE_YSF)
+-    case MMDVM_YSF_DATA:
+-      if (m_ysfEnable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_YSF)
+-          err = ysfTX.writeData(buffer, length);
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_YSF);
+-      } else {
+-        DEBUG2("Received invalid System Fusion data", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-#endif
+-
+-#if defined(MODE_P25)
+-    case MMDVM_P25_HDR:
+-      if (m_p25Enable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_P25)
+-          err = p25TX.writeData(buffer, length);
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_P25);
+-      } else {
+-        DEBUG2("Received invalid P25 header", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-
+-    case MMDVM_P25_LDU:
+-      if (m_p25Enable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_P25)
+-          err = p25TX.writeData(buffer, length);
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_P25);
+-      } else {
+-        DEBUG2("Received invalid P25 LDU", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-#endif
+-
+-#if defined(MODE_NXDN)
+-    case MMDVM_NXDN_DATA:
+-      if (m_nxdnEnable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_NXDN)
+-          err = nxdnTX.writeData(buffer, length);
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_NXDN);
+-      } else {
+-        DEBUG2("Received invalid NXDN data", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-#endif
+-
+-#if defined(MODE_POCSAG)
+-    case MMDVM_POCSAG_DATA:
+-      if (m_pocsagEnable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_POCSAG)
+-          err = pocsagTX.writeData(buffer, length);
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_POCSAG);
+-      } else {
+-        DEBUG2("Received invalid POCSAG data", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-#endif
+-
+-#if defined(MODE_FM)
+-    case MMDVM_FM_DATA:
+-      if (m_fmEnable) {
+-        if (m_modemState == STATE_IDLE || m_modemState == STATE_FM)
+-          err = fm.writeData(buffer, length);
+-      }
+-      if (err == 0U) {
+-        if (m_modemState == STATE_IDLE)
+-          setMode(STATE_FM);
+-      } else {
+-        DEBUG2("Received invalid FM data", err);
+-        sendNAK(type, err);
+-      }
+-      break;
+-#endif
+-
+-    case MMDVM_TRANSPARENT:
+-    case MMDVM_QSO_INFO:
+-      // Do nothing on the MMDVM.
+-      break;
+-
+-#if defined(SERIAL_REPEATER)
+-    case MMDVM_SERIAL_DATA: {
+-      for (uint16_t i = 0U; i < length; i++)
+-        m_serialData.put(buffer[i]);
+-      }
+-      break;
+-#endif
+-
+-#if defined(I2C_REPEATER)
+-    case MMDVM_I2C_DATA: {
+-      for (uint16_t i = 0U; i < length; i++)
+-        m_i2CData.put(buffer[i]);
+-      }
+-      break;
+-#endif
+-
+-    default:
+-      // Handle this, send a NAK back
+-      sendNAK(type, 1U);
+-      break;
+-  }
+-
+-  m_ptr = 0U;
+-  m_len = 0U;
+-}
+-
+-#if defined(MODE_DSTAR)
+ void CSerialPort::writeDStarHeader(const uint8_t* header, uint8_t length)
+ {
+   if (m_modemState != STATE_DSTAR && m_modemState != STATE_IDLE)
+@@ -1368,9 +970,7 @@
+ 
+   writeInt(1U, reply, 3);
+ }
+-#endif
+ 
+-#if defined(MODE_DMR)
+ void CSerialPort::writeDMRData(bool slot, const uint8_t* data, uint8_t length)
+ {
+   if (m_modemState != STATE_DMR && m_modemState != STATE_IDLE)
+@@ -1392,6 +992,7 @@
+   reply[1U] = count;
+ 
+   writeInt(1U, reply, count);
++  DEBUG1("write DMR data");
+ }
+ 
+ void CSerialPort::writeDMRLost(bool slot)
+@@ -1409,10 +1010,9 @@
+   reply[2U] = slot ? MMDVM_DMR_LOST2 : MMDVM_DMR_LOST1;
+ 
+   writeInt(1U, reply, 3);
++  DEBUG1("write DMR lost");
+ }
+-#endif
+ 
+-#if defined(MODE_YSF)
+ void CSerialPort::writeYSFData(const uint8_t* data, uint8_t length)
+ {
+   if (m_modemState != STATE_YSF && m_modemState != STATE_IDLE)
+@@ -1452,9 +1052,7 @@
+ 
+   writeInt(1U, reply, 3);
+ }
+-#endif
+ 
+-#if defined(MODE_P25)
+ void CSerialPort::writeP25Hdr(const uint8_t* data, uint8_t length)
+ {
+   if (m_modemState != STATE_P25 && m_modemState != STATE_IDLE)
+@@ -1517,9 +1115,7 @@
+ 
+   writeInt(1U, reply, 3);
+ }
+-#endif
+ 
+-#if defined(MODE_NXDN)
+ void CSerialPort::writeNXDNData(const uint8_t* data, uint8_t length)
+ {
+   if (m_modemState != STATE_NXDN && m_modemState != STATE_IDLE)
+@@ -1559,114 +1155,6 @@
+ 
+   writeInt(1U, reply, 3);
+ }
+-#endif
+-
+-#if defined(MODE_FM)
+-void CSerialPort::writeFMData(const uint8_t* data, uint16_t length)
+-{
+-  if (m_modemState != STATE_FM && m_modemState != STATE_IDLE)
+-    return;
+-
+-  if (!m_fmEnable)
+-    return;
+-
+-  uint8_t reply[512U];
+-
+-  reply[0U] = MMDVM_FRAME_START;
+-
+-  if (length > 252U) {
+-    reply[1U] = 0U;
+-    reply[2U] = (length + 4U) - 255U;
+-    reply[3U] = MMDVM_FM_DATA;
+-
+-    for (uint16_t i = 0U; i < length; i++)
+-      reply[i + 4U] = data[i];
+-
+-    writeInt(1U, reply, length + 4U);
+-  } else {
+-    reply[1U] = length + 3U;
+-    reply[2U] = MMDVM_FM_DATA;
+-
+-    for (uint16_t i = 0U; i < length; i++)
+-      reply[i + 3U] = data[i];
+-
+-    writeInt(1U, reply, length + 3U);
+-  }
+-}
+-
+-void CSerialPort::writeFMStatus(uint8_t status)
+-{
+-  if (m_modemState != STATE_FM && m_modemState != STATE_IDLE)
+-    return;
+-
+-  if (!m_fmEnable)
+-    return;
+-
+-  uint8_t reply[10U];
+-
+-  reply[0U] = MMDVM_FRAME_START;
+-  reply[1U] = 4U;
+-  reply[2U] = MMDVM_FM_STATUS;
+-  reply[3U] = status;
+-
+-  writeInt(1U, reply, 4U);
+-}
+-
+-void CSerialPort::writeFMEOT()
+-{
+-  if (m_modemState != STATE_FM && m_modemState != STATE_IDLE)
+-    return;
+-
+-  if (!m_fmEnable)
+-    return;
+-
+-  uint8_t reply[10U];
+-
+-  reply[0U] = MMDVM_FRAME_START;
+-  reply[1U] = 3U;
+-  reply[2U] = MMDVM_FM_EOT;
+-
+-  writeInt(1U, reply, 3U);
+-}
+-#endif
+-
+-#if defined(SERIAL_REPEATER)
+-void CSerialPort::writeSerialData(const uint8_t* data, uint8_t length)
+-{
+-  uint8_t reply[255U];
+-
+-  reply[0U] = MMDVM_FRAME_START;
+-  reply[1U] = 0U;
+-  reply[2U] = MMDVM_SERIAL_DATA;
+-
+-  uint8_t count = 3U;
+-  for (uint8_t i = 0U; i < length; i++, count++)
+-    reply[count] = data[i];
+-
+-  reply[1U] = count;
+-
+-  writeInt(1U, reply, count);
+-}
+-#endif
+-
+-#if defined(I2C_REPEATER)
+-void CSerialPort::writeI2CData(const uint8_t* data, uint8_t length)
+-{
+-  uint8_t reply[255U];
+-
+-  reply[0U] = MMDVM_FRAME_START;
+-  reply[1U] = 0U;
+-  reply[2U] = MMDVM_I2C_DATA;
+-
+-  uint8_t count = 3U;
+-  for (uint8_t i = 0U; i < length; i++, count++)
+-    reply[count] = data[i];
+-
+-  reply[1U] = count;
+-
+-  writeInt(1U, reply, count);
+-}
+-#endif
+ 
+ void CSerialPort::writeCalData(const uint8_t* data, uint8_t length)
+ {
+@@ -1837,29 +1325,3 @@
+ 
+   writeInt(1U, reply, count, true);
+ }
+-
+-void CSerialPort::writeDebugDump(const uint8_t* data, uint16_t length)
+-{
+-  uint8_t reply[512U];
+-
+-  reply[0U] = MMDVM_FRAME_START;
+-
+-  if (length > 252U) {
+-    reply[1U] = 0U;
+-    reply[2U] = (length + 4U) - 255U;
+-    reply[3U] = MMDVM_DEBUG_DUMP;
+-
+-    for (uint16_t i = 0U; i < length; i++)
+-      reply[i + 4U] = data[i];
+-
+-    writeInt(1U, reply, length + 4U);
+-  } else {
+-    reply[1U] = length + 3U;
+-    reply[2U] = MMDVM_DEBUG_DUMP;
+-
+-    for (uint16_t i = 0U; i < length; i++)
+-      reply[i + 3U] = data[i];
+-
+-    writeInt(1U, reply, length + 3U);
+-  }
+-}
+--- /tmp/upstream-mmdvm/./SerialPort.h	2025-11-16 19:25:50.748622959 +0000
++++ ././SerialPort.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2018,2020,2021,2025 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017,2018 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -21,12 +21,8 @@
+ 
+ #include "Config.h"
+ #include "Globals.h"
+-#include "RingBuffer.h"
+-
+-#if !defined(SERIAL_SPEED)
+-#define SERIAL_SPEED 115200
+-#endif
+-
++#include "SerialRB.h"
++#include "SerialController.h"
+ 
+ class CSerialPort {
+ public:
+@@ -36,47 +32,23 @@
+ 
+   void process();
+ 
+-#if defined(MODE_DSTAR)
+   void writeDStarHeader(const uint8_t* header, uint8_t length);
+   void writeDStarData(const uint8_t* data, uint8_t length);
+   void writeDStarLost();
+   void writeDStarEOT();
+-#endif
+ 
+-#if defined(MODE_DMR)
+   void writeDMRData(bool slot, const uint8_t* data, uint8_t length);
+   void writeDMRLost(bool slot);
+-#endif
+ 
+-#if defined(MODE_YSF)
+   void writeYSFData(const uint8_t* data, uint8_t length);
+   void writeYSFLost();
+-#endif
+ 
+-#if defined(MODE_P25)
+   void writeP25Hdr(const uint8_t* data, uint8_t length);
+   void writeP25Ldu(const uint8_t* data, uint8_t length);
+   void writeP25Lost();
+-#endif
+ 
+-#if defined(MODE_NXDN)
+   void writeNXDNData(const uint8_t* data, uint8_t length);
+   void writeNXDNLost();
+-#endif
+-
+-#if defined(MODE_FM)
+-  void writeFMData(const uint8_t* data, uint16_t length);
+-  void writeFMStatus(uint8_t status);
+-  void writeFMEOT();
+-#endif
+-
+-#if defined(SERIAL_REPEATER)
+-  void writeSerialData(const uint8_t* data, uint8_t length);
+-#endif
+-
+-#if defined(I2C_REPEATER)
+-  void writeI2CData(const uint8_t* data, uint8_t length);
+-#endif
+ 
+   void writeCalData(const uint8_t* data, uint8_t length);
+   void writeRSSIData(const uint8_t* data, uint8_t length);
+@@ -86,37 +58,28 @@
+   void writeDebug(const char* text, int16_t n1, int16_t n2);
+   void writeDebug(const char* text, int16_t n1, int16_t n2, int16_t n3);
+   void writeDebug(const char* text, int16_t n1, int16_t n2, int16_t n3, int16_t n4);
+-  void writeDebugDump(const uint8_t* data, uint16_t length);
+ 
+ private:
+-  uint8_t   m_buffer[512U];
+-  uint16_t  m_ptr;
+-  uint16_t  m_len;
++  uint8_t   m_buffer[256U];
++  uint8_t   m_ptr;
++  uint8_t   m_len;
+   bool      m_debug;
+-  CRingBuffer<uint8_t> m_serialData;
+-  int       m_lastSerialAvail;
+-  uint16_t  m_lastSerialAvailCount;
+-  CRingBuffer<uint8_t> m_i2CData;
++  CSerialRB m_repeat;
++#if defined(RPI)
++  CSerialController m_controller;
++#endif
+ 
+-  void    sendACK(uint8_t type);
+-  void    sendNAK(uint8_t type, uint8_t err);
++  void    sendACK();
++  void    sendNAK(uint8_t err);
+   void    getStatus();
+   void    getVersion();
+-  uint8_t setConfig(const uint8_t* data, uint16_t length);
+-  uint8_t setMode(const uint8_t* data, uint16_t length);
++  uint8_t setConfig(const uint8_t* data, uint8_t length);
++  uint8_t setMode(const uint8_t* data, uint8_t length);
+   void    setMode(MMDVM_STATE modemState);
+-  void    processMessage(uint8_t type, const uint8_t* data, uint16_t length);
+-
+-#if defined(MODE_FM)
+-  uint8_t setFMParams1(const uint8_t* data, uint16_t length);
+-  uint8_t setFMParams2(const uint8_t* data, uint16_t length);
+-  uint8_t setFMParams3(const uint8_t* data, uint16_t length);
+-  uint8_t setFMParams4(const uint8_t* data, uint16_t length);
+-#endif
+ 
+   // Hardware versions
+   void    beginInt(uint8_t n, int speed);
+-  int     availableForReadInt(uint8_t n);
++  int     availableInt(uint8_t n);
+   int     availableForWriteInt(uint8_t n);
+   uint8_t readInt(uint8_t n);
+   void    writeInt(uint8_t n, const uint8_t* data, uint16_t length, bool flush = false);
+--- /tmp/upstream-mmdvm/./Utils.cpp	2025-11-16 19:25:50.749622975 +0000
++++ ././Utils.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -30,15 +30,6 @@
+   return BITS_TABLE[bits];
+ }
+ 
+-uint8_t countBits16(uint16_t bits)
+-{
+-  uint8_t* p = (uint8_t*)&bits;
+-  uint8_t n = 0U;
+-  n += BITS_TABLE[p[0U]];
+-  n += BITS_TABLE[p[1U]];
+-  return n;
+-}
+-
+ uint8_t countBits32(uint32_t bits)
+ {
+   uint8_t* p = (uint8_t*)&bits;
+--- /tmp/upstream-mmdvm/./Utils.h	2025-11-16 19:25:50.749622975 +0000
++++ ././Utils.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -23,14 +23,18 @@
+ #include "stm32f4xx.h"
+ #elif defined(STM32F7XX)
+ #include "stm32f7xx.h"
++#elif defined(STM32F105xC)
++#include "stm32f1xx.h"
++#include <cstddef>
++#elif defined(RPI)
++#include <stdint.h>
++#include <cstddef>
+ #else
+ #include <Arduino.h>
+ #endif
+ 
+ uint8_t countBits8(uint8_t bits);
+ 
+-uint8_t countBits16(uint16_t bits);
+-
+ uint8_t countBits32(uint32_t bits);
+ 
+ uint8_t countBits64(uint64_t bits);
+--- /tmp/upstream-mmdvm/./YSFRX.cpp	2025-11-16 19:25:50.749622975 +0000
++++ ././YSFRX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2017,2020,2024 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -17,9 +17,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_YSF)
+-
+ #include "Globals.h"
+ #include "YSFRX.h"
+ #include "Utils.h"
+@@ -405,6 +402,3 @@
+   m_rssiAccum = 0U;
+   m_rssiCount = 0U;
+ }
+-
+-#endif
+-
+--- /tmp/upstream-mmdvm/./YSFRX.h	2025-11-16 19:25:50.750622990 +0000
++++ ././YSFRX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,13 +16,10 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_YSF)
+-
+ #if !defined(YSFRX_H)
+ #define  YSFRX_H
+ 
++#include "Config.h"
+ #include "YSFDefines.h"
+ 
+ enum YSFRX_STATE {
+@@ -70,5 +67,3 @@
+ 
+ #endif
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./YSFTX.cpp	2025-11-16 19:25:50.750622990 +0000
++++ ././YSFTX.cpp	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2009-2018,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2009-2017 by Jonathan Naylor G4KLX
+  *   Copyright (C) 2017 by Andy Uribe CA6JAU
+  *
+  *   This program is free software; you can redistribute it and/or modify
+@@ -18,9 +18,6 @@
+  */
+ 
+ #include "Config.h"
+-
+-#if defined(MODE_YSF)
+-
+ #include "Globals.h"
+ #include "YSFTX.h"
+ 
+@@ -44,19 +41,16 @@
+ 
+ const uint8_t YSF_START_SYNC = 0x77U;
+ const uint8_t YSF_END_SYNC   = 0xFFU;
+-const uint8_t YSF_HANG       = 0x00U;
+ 
+ CYSFTX::CYSFTX() :
+-m_buffer(TX_BUFFER_LEN),
++m_buffer(1500U),
+ m_modFilter(),
+ m_modState(),
+ m_poBuffer(),
+ m_poLen(0U),
+ m_poPtr(0U),
+ m_txDelay(240U),      // 200ms
+-m_loDev(false),
+-m_txHang(4800U),      // 4s
+-m_txCount(0U)
++m_loDev(false)
+ {
+   ::memset(m_modState, 0x00U, 16U * sizeof(q15_t));
+ 
+@@ -66,18 +60,18 @@
+   m_modFilter.pState      = m_modState;
+ }
+ 
+-
+ void CYSFTX::process()
+ {
+-  // If we have YSF data to transmit, do so.
+-  if (m_poLen == 0U && m_buffer.getData() > 0U) {
++  if (m_buffer.getData() == 0U && m_poLen == 0U)
++    return;
++
++  if (m_poLen == 0U) {
+     if (!m_tx) {
+       for (uint16_t i = 0U; i < m_txDelay; i++)
+         m_poBuffer[m_poLen++] = YSF_START_SYNC;
+     } else {
+       for (uint8_t i = 0U; i < YSF_FRAME_LENGTH_BYTES; i++) {
+-        uint8_t c = 0U;
+-        m_buffer.get(c);
++        uint8_t c = m_buffer.get();
+         m_poBuffer[m_poLen++] = c;
+       }
+     }
+@@ -86,41 +80,24 @@
+   }
+ 
+   if (m_poLen > 0U) {
+-    // Transmit YSF data.
+     uint16_t space = io.getSpace();
+-
++    
+     while (space > (4U * YSF_RADIO_SYMBOL_LENGTH)) {
+       uint8_t c = m_poBuffer[m_poPtr++];
+       writeByte(c);
+ 
+-      // Reduce space and reset the hang timer.
+       space -= 4U * YSF_RADIO_SYMBOL_LENGTH;
+-      if (m_duplex)
+-        m_txCount = m_txHang;
+-
++      
+       if (m_poPtr >= m_poLen) {
+         m_poPtr = 0U;
+         m_poLen = 0U;
+         return;
+       }
+     }
+-  } else if (m_txCount > 0U) {
+-    // Transmit silence until the hang timer has expired.
+-    uint16_t space = io.getSpace();
+-
+-    while (space > (4U * YSF_RADIO_SYMBOL_LENGTH)) {
+-      writeSilence();
+-
+-      space -= 4U * YSF_RADIO_SYMBOL_LENGTH;
+-      m_txCount--;
+-
+-      if (m_txCount == 0U)
+-        return;
+-    }
+   }
+ }
+ 
+-uint8_t CYSFTX::writeData(const uint8_t* data, uint16_t length)
++uint8_t CYSFTX::writeData(const uint8_t* data, uint8_t length)
+ {
+   if (length != (YSF_FRAME_LENGTH_BYTES + 1U))
+     return 4U;
+@@ -164,16 +141,6 @@
+   io.write(STATE_YSF, outBuffer, YSF_RADIO_SYMBOL_LENGTH * 4U);
+ }
+ 
+-void CYSFTX::writeSilence()
+-{
+-  q15_t inBuffer[4U] = {0x00U, 0x00U, 0x00U, 0x00U};
+-  q15_t outBuffer[YSF_RADIO_SYMBOL_LENGTH * 4U];
+-
+-  ::arm_fir_interpolate_q15(&m_modFilter, inBuffer, outBuffer, 4U);
+-
+-  io.write(STATE_YSF, outBuffer, YSF_RADIO_SYMBOL_LENGTH * 4U);
+-}
+-
+ void CYSFTX::setTXDelay(uint8_t delay)
+ {
+   m_txDelay = 600U + uint16_t(delay) * 12U;        // 500ms + tx delay
+@@ -187,11 +154,8 @@
+   return m_buffer.getSpace() / YSF_FRAME_LENGTH_BYTES;
+ }
+ 
+-void CYSFTX::setParams(bool on, uint8_t txHang)
++void CYSFTX::setLoDev(bool on)
+ {
+-  m_loDev  = on;
+-  m_txHang = txHang * 1200U;
++  m_loDev = on;
+ }
+ 
+-#endif
+-
+--- /tmp/upstream-mmdvm/./YSFTX.h	2025-11-16 19:25:50.750622990 +0000
++++ ././YSFTX.h	2025-11-16 17:00:05.000000000 +0000
+@@ -1,5 +1,5 @@
+ /*
+- *   Copyright (C) 2015,2016,2017,2020 by Jonathan Naylor G4KLX
++ *   Copyright (C) 2015,2016,2017 by Jonathan Naylor G4KLX
+  *
+  *   This program is free software; you can redistribute it and/or modify
+  *   it under the terms of the GNU General Public License as published by
+@@ -16,20 +16,18 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include "Config.h"
+-
+-#if defined(MODE_YSF)
+-
+ #if !defined(YSFTX_H)
+ #define  YSFTX_H
+ 
+-#include "RingBuffer.h"
++#include "Config.h"
++
++#include "SerialRB.h"
+ 
+ class CYSFTX {
+ public:
+   CYSFTX();
+ 
+-  uint8_t writeData(const uint8_t* data, uint16_t length);
++  uint8_t writeData(const uint8_t* data, uint8_t length);
+ 
+   void process();
+ 
+@@ -37,10 +35,10 @@
+ 
+   uint8_t getSpace() const;
+ 
+-  void setParams(bool on, uint8_t txHang);
++  void setLoDev(bool on);
+ 
+ private:
+-  CRingBuffer<uint8_t>                        m_buffer;
++  CSerialRB                        m_buffer;
+   arm_fir_interpolate_instance_q15 m_modFilter;
+   q15_t                            m_modState[16U];    // blockSize + phaseLength - 1, 4 + 9 - 1 plus some spare
+   uint8_t                          m_poBuffer[1200U];
+@@ -48,14 +46,9 @@
+   uint16_t                         m_poPtr;
+   uint16_t                         m_txDelay;
+   bool                             m_loDev;
+-  uint32_t                         m_txHang;
+-  uint32_t                         m_txCount;
+ 
+   void writeByte(uint8_t c);
+-  void writeSilence();
+ };
+ 
+ #endif
+ 
+-#endif
+-
