@@ -2,9 +2,6 @@
  *   Unit tests for FM Modulator/Demodulator
  */
 
-#define STANDALONE_MODE
-#define USE_NEON
-
 #include "../FMModem.h"
 #include <cstdio>
 #include <cmath>

@@ -76,18 +76,17 @@
 
 // PlutoSDR configuration (requires STANDALONE_MODE)
 #if defined(STANDALONE_MODE)
-  // Define SDR device type
-  #define PLUTO_SDR
-  // #define HACKRF
-  // #define LIMESDR
+  // SDR device type defaults (only used when building without CMake)
+  // When using CMake, these are controlled by build options
+  // #if !defined(PLUTO_SDR) && !defined(HACKRF) && !defined(LIMESDR)
+  //   #define PLUTO_SDR
+  // #endif
 
-  // Enable ARM NEON SIMD optimizations
+  // ARM NEON SIMD optimizations (controlled by CMake -DUSE_NEON=ON/OFF)
   // Recommended for PlutoSDR (Zynq7000 Cortex-A9) and RaspberryPi 2+
-  #define USE_NEON
 
-  // Enable text UI for standalone operation
+  // Text UI (controlled by CMake -DUSE_TEXT_UI=ON/OFF)
   // Requires ncurses library
-  #define TEXT_UI
 
   // SDR sample rate (Hz) - PlutoSDR supports 520kHz to 61.44MHz
   #define SDR_SAMPLE_RATE 1000000U

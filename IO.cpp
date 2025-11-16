@@ -24,6 +24,8 @@
 
 #include "Log.h"
 
+#include <pthread.h>
+
 // Generated using [b, a] = butter(1, 0.001) in MATLAB
 static q31_t   DC_FILTER[] = {3367972, 0, 3367972, 0, 2140747704, 0}; // {b0, 0, b1, b2, -a1, -a2}
 const uint32_t DC_FILTER_STAGES = 1U; // One Biquad stage
@@ -90,11 +92,13 @@ m_detect(false),
 m_adcOverflow(0U),
 m_dacOverflow(0U),
 m_watchdog(0U),
-m_lockout(false),
-m_zmqcontext(1),
+m_lockout(false)
+#if !defined(STANDALONE_MODE)
+,m_zmqcontext(1),
 m_zmqsocket(m_zmqcontext, ZMQ_PUSH),
 m_zmqcontextRX(1),
 m_zmqsocketRX(m_zmqcontextRX, ZMQ_PULL)
+#endif
 {
   ::memset(m_rrcState,      0x00U,  70U * sizeof(q15_t));
   ::memset(m_gaussianState, 0x00U,  40U * sizeof(q15_t));
@@ -129,12 +133,14 @@ m_zmqsocketRX(m_zmqcontextRX, ZMQ_PULL)
   m_nxdnISincFilter.pCoeffs = NXDN_ISINC_FILTER;
 
   initInt();
-  
+
   selfTest();
   setCOSInt(false);
-  
-  m_zmqsocket.bind ("ipc:///tmp/mmdvm-tx.ipc");  
+
+#if !defined(STANDALONE_MODE)
+  m_zmqsocket.bind ("ipc:///tmp/mmdvm-tx.ipc");
   m_zmqsocketRX.connect ("ipc:///tmp/mmdvm-rx.ipc");
+#endif
 }
 
 void CIO::selfTest()

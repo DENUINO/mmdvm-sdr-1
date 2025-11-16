@@ -2,8 +2,6 @@
  *   Unit tests for NEON-optimized math functions
  */
 
-#define USE_NEON
-
 #include "../arm_math_neon.h"
 #include <cstdio>
 #include <cstring>

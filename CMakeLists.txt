@@ -42,11 +42,6 @@ if(STANDALONE_MODE)
   message(STATUS "Standalone SDR mode enabled")
 endif()
 
-if(PLUTO_SDR AND STANDALONE_MODE)
-  add_definitions(-DPLUTO_SDR)
-  message(STATUS "PlutoSDR target enabled")
-endif()
-
 if(USE_TEXT_UI)
   add_definitions(-DTEXT_UI)
   message(STATUS "Text UI enabled")
@@ -57,6 +52,7 @@ endif()
 # Required: pthread, math, realtime
 find_package(Threads REQUIRED)
 
+# Check for PlutoSDR dependencies BEFORE adding the definition
 if(STANDALONE_MODE AND PLUTO_SDR)
   # Find libiio for PlutoSDR
   find_package(PkgConfig REQUIRED)
@@ -65,6 +61,8 @@ if(STANDALONE_MODE AND PLUTO_SDR)
     message(STATUS "Found libiio: ${LIBIIO_VERSION}")
     include_directories(${LIBIIO_INCLUDE_DIRS})
     add_definitions(-DHAVE_LIBIIO)
+    add_definitions(-DPLUTO_SDR)
+    message(STATUS "PlutoSDR target enabled")
   else()
     message(WARNING "libiio not found. PlutoSDR support will be disabled.")
     message(WARNING "To enable PlutoSDR: sudo apt-get install libiio-dev libiio-utils")
@@ -111,6 +109,7 @@ set(CORE_SOURCES
   SerialPort.cpp
   SerialController.cpp
   ISerialPort.cpp
+  SerialRPI.cpp
   Log.cpp
   Utils.cpp
   Config.h
@@ -187,13 +186,15 @@ endif()
 # Standalone SDR sources
 if(STANDALONE_MODE)
   set(SDR_SOURCES
-    PlutoSDR.cpp
-    PlutoSDR.h
     FMModem.cpp
     FMModem.h
     Resampler.cpp
     Resampler.h
   )
+  # Add PlutoSDR sources only if libiio is available
+  if(PLUTO_SDR)
+    list(APPEND SDR_SOURCES PlutoSDR.cpp PlutoSDR.h)
+  endif()
 else()
   set(SDR_SOURCES "")
 endif()

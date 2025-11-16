@@ -207,27 +207,9 @@ void CIO::interrupt()
 #endif
 
 #else
-  // ZMQ mode (existing code from IORPi.cpp)
-  uint16_t sample = DC_OFFSET;
-  uint8_t control = MARK_NONE;
-
-  ::pthread_mutex_lock(&m_TXlock);
-  while (m_txBuffer.get(sample, control)) {
-    sample *= 5;  // amplify by 12dB
-    short signed_sample = (short)sample;
-
-    if (m_audiobuf.size() >= 720) {
-      zmq::message_t reply(720 * sizeof(short));
-      memcpy(reply.data(), (unsigned char *)m_audiobuf.data(), 720 * sizeof(short));
-      m_zmqsocket.send(reply, zmq::send_flags::dontwait);
-      usleep(9600 * 3);
-      m_audiobuf.erase(m_audiobuf.begin(), m_audiobuf.begin() + 720);
-      m_audiobuf.push_back(signed_sample);
-    } else {
-      m_audiobuf.push_back(signed_sample);
-    }
-  }
-  ::pthread_mutex_unlock(&m_TXlock);
+  // Stub: No SDR hardware available (PLUTO_SDR not defined)
+  // This can happen when building in standalone mode but libiio is not available
+  // For normal operation, PlutoSDR support must be enabled
 #endif
 }
 
@@ -275,26 +257,9 @@ void CIO::interruptRX()
   ::pthread_mutex_unlock(&m_RXlock);
 
 #else
-  // ZMQ mode (existing code from IORPi.cpp)
-  uint16_t sample = DC_OFFSET;
-  uint8_t control = MARK_NONE;
-
-  zmq::message_t mq_message;
-  zmq::recv_result_t recv_result = m_zmqsocketRX.recv(mq_message, zmq::recv_flags::none);
-  int size = mq_message.size();
-  if (size < 1)
-    return;
-
-  ::pthread_mutex_lock(&m_RXlock);
-  u_int16_t rx_buf_space = m_rxBuffer.getSpace();
-
-  for (int i = 0; i < size; i += 2) {
-    short signed_sample = 0;
-    memcpy(&signed_sample, (unsigned char*)mq_message.data() + i, sizeof(short));
-    m_rxBuffer.put((uint16_t)signed_sample, control);
-    m_rssiBuffer.put(3U);
-  }
-  ::pthread_mutex_unlock(&m_RXlock);
+  // Stub: No SDR hardware available (PLUTO_SDR not defined)
+  // This can happen when building in standalone mode but libiio is not available
+  // For normal operation, PlutoSDR support must be enabled
 #endif
 }
 

@@ -2,9 +2,6 @@
  *   Unit tests for Rational Resampler
  */
 
-#define STANDALONE_MODE
-#define USE_NEON
-
 #include "../Resampler.h"
 #include <cstdio>
 #include <cmath>
