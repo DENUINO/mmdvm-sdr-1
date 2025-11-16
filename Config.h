@@ -69,4 +69,51 @@
 // To reduce CPU load, you can remove the DC blocker by commenting out the next line
 #define USE_DCBLOCKER
 
+// ==================== Standalone SDR Mode ====================
+// Uncomment to enable standalone SDR operation (no GNU Radio required)
+// This integrates PlutoSDR direct access, FM modem, and resampling
+// #define STANDALONE_MODE
+
+// PlutoSDR configuration (requires STANDALONE_MODE)
+#if defined(STANDALONE_MODE)
+  // Define SDR device type
+  #define PLUTO_SDR
+  // #define HACKRF
+  // #define LIMESDR
+
+  // Enable ARM NEON SIMD optimizations
+  // Recommended for PlutoSDR (Zynq7000 Cortex-A9) and RaspberryPi 2+
+  #define USE_NEON
+
+  // Enable text UI for standalone operation
+  // Requires ncurses library
+  #define TEXT_UI
+
+  // SDR sample rate (Hz) - PlutoSDR supports 520kHz to 61.44MHz
+  #define SDR_SAMPLE_RATE 1000000U
+
+  // MMDVM baseband rate (fixed by protocol)
+  #define BASEBAND_RATE 24000U
+
+  // FM deviation for PlutoSDR (Hz)
+  #define FM_DEVIATION 5000.0f
+
+  // PlutoSDR default URI
+  #define PLUTO_URI "ip:192.168.2.1"
+  // #define PLUTO_URI "usb:"
+  // #define PLUTO_URI "local:"
+
+  // Buffer sizes for SDR I/O
+  #define SDR_RX_BUFFER_SIZE 32768U
+  #define SDR_TX_BUFFER_SIZE 32768U
+
+  // Text UI update rate (Hz)
+  #define UI_UPDATE_RATE 10U
+
+  // Debug options for standalone mode
+  // #define DEBUG_SDR_IO
+  // #define DEBUG_RESAMPLER
+  // #define DEBUG_FM_MODEM
+#endif
+
 #endif

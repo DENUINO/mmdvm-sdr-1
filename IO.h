@@ -25,7 +25,10 @@
 
 #include "SampleRB.h"
 #include "RSSIRB.h"
+
+#if !defined(STANDALONE_MODE)
 #include <zmq.hpp>
+#endif
 
 class CIO {
 public:
@@ -107,13 +110,17 @@ private:
   volatile uint32_t    m_watchdog;
 
   bool                 m_lockout;
+
+#if !defined(STANDALONE_MODE)
   zmq::context_t m_zmqcontext;
   zmq::socket_t m_zmqsocket;
   std::vector<short> m_audiobuf;
-  
+
   zmq::context_t m_zmqcontextRX;
   zmq::socket_t m_zmqsocketRX;
   std::vector<short> m_audiobufRX;
+#endif
+
   pthread_mutex_t m_TXlock;
   pthread_mutex_t m_RXlock;
   bool m_COSint;
