@@ -172,9 +172,11 @@ void CIO::interrupt()
 
   ::pthread_mutex_lock(&m_TXlock);
 
-  // Get samples from TX buffer (24kHz baseband)
+  // Accumulate samples in standard MMDVM frame blocks (720 samples)
+  // This aligns with MMDVMHost frame timing and prevents missed starts
   uint32_t basebandSampleCount = 0;
-  while (m_txBuffer.get(sample, control) && basebandSampleCount < 720) {
+  while (m_txBuffer.get(sample, control) &&
+         basebandSampleCount < MMDVM_FRAME_BLOCK_SIZE) {
     // Convert from DC offset format to signed
     int16_t signed_sample = (int16_t)(sample - DC_OFFSET);
     g_txBasebandTmp[basebandSampleCount++] = signed_sample;
@@ -182,10 +184,38 @@ void CIO::interrupt()
 
   ::pthread_mutex_unlock(&m_TXlock);
 
+#if defined(DEBUG_FRAME_TIMING)
+  // Log partial blocks for debugging timing issues
+  static uint32_t partialBlockCount = 0;
+  if (basebandSampleCount > 0 && basebandSampleCount != MMDVM_FRAME_BLOCK_SIZE) {
+    partialBlockCount++;
+    if (partialBlockCount % 100 == 0) {
+      DEBUG1("TX: Partial block #%u: %u/%u samples",
+             partialBlockCount,
+             basebandSampleCount,
+             MMDVM_FRAME_BLOCK_SIZE);
+    }
+  }
+#endif
+
   if (basebandSampleCount == 0)
     return;
 
-  // Upsample from 24kHz to 1MHz
+  // Apply configurable TX gain (Q8 format: gain / 128)
+  for (uint32_t i = 0; i < basebandSampleCount; i++) {
+    // Multiply by gain and divide by 128 (Q8 normalization)
+    int32_t amplified = ((int32_t)g_txBasebandTmp[i] * m_txGain) >> 7;
+
+    // Clamp to prevent overflow
+    if (amplified > 32767)
+      amplified = 32767;
+    else if (amplified < -32768)
+      amplified = -32768;
+
+    g_txBasebandTmp[i] = (int16_t)amplified;
+  }
+
+  // Upsample from 24kHz to 1MHz (125x interpolation)
   uint32_t resampledCount;
   if (!g_txResampler.interpolate(g_txBasebandTmp, basebandSampleCount,
                                   g_rxBasebandTmp, SDR_TX_BUFFER_SIZE, &resampledCount)) {

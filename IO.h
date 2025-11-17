@@ -49,7 +49,7 @@ public:
   void interrupt();
   void interruptRX();
 
-  void setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnLevel, int16_t txDCOffset, int16_t rxDCOffset);
+  void setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnLevel, uint8_t pocsagTXLevel, uint8_t fmTXLevel, int16_t txDCOffset, int16_t rxDCOffset);
 
   void getOverflow(bool& adcOverflow, bool& dacOverflow);
 
@@ -95,6 +95,8 @@ private:
   q15_t                m_ysfTXLevel;
   q15_t                m_p25TXLevel;
   q15_t                m_nxdnTXLevel;
+  q15_t                m_pocsagTXLevel;
+  q15_t                m_fmTXLevel;
 
   uint16_t             m_rxDCOffset;
   uint16_t             m_txDCOffset;
@@ -110,6 +112,10 @@ private:
   volatile uint32_t    m_watchdog;
 
   bool                 m_lockout;
+
+  // Gain controls (Q8 format)
+  uint16_t m_txGain;
+  uint16_t m_rxGain;
 
 #if !defined(STANDALONE_MODE)
   zmq::context_t m_zmqcontext;
@@ -141,8 +147,17 @@ private:
   void setYSFInt(bool on);
   void setP25Int(bool on);
   void setNXDNInt(bool on);
-  
+  void setFMInt(bool on);
+
   void delayInt(unsigned int dly);
+
+  // TX/RX gain control
+  // Gain in Q8 format: 128 = 1.0x, 256 = 2.0x, etc.
+  // Maximum: 1024 (8.0x = 18dB)
+  void setTXGain(uint16_t gain);
+  void setRXGain(uint16_t gain);
+  uint16_t getTXGain() const { return m_txGain; }
+  uint16_t getRXGain() const { return m_rxGain; }
 };
 
 #endif

@@ -69,6 +69,27 @@
 // To reduce CPU load, you can remove the DC blocker by commenting out the next line
 #define USE_DCBLOCKER
 
+// FM mode audio filtering (de-emphasis on RX, pre-emphasis on TX)
+// Enabled by default for proper FM voice quality
+#define FM_AUDIO_FILTER
+
+// ==================== Protocol Version Configuration ====================
+// MMDVM Serial Protocol Version Selection
+//
+// Protocol Version 1 (default): Compatible with older MMDVMHost versions
+// Protocol Version 2: Enhanced status reporting, capability flags, extended error handling
+//
+// Uncomment one of the following:
+#define PROTOCOL_VERSION 1
+// #define PROTOCOL_VERSION 2
+//
+// Notes:
+// - Protocol V1: Tested with MMDVMHost versions up to ~2020
+// - Protocol V2: Compatible with latest MMDVMHost versions (2021+)
+// - Both versions support: D-Star, DMR, YSF, P25, NXDN
+// - Neither version supports: FM, POCSAG (not implemented in mmdvm-sdr)
+// - V2 adds: Mode capability flags, extended status fields, improved error codes
+
 // ==================== Standalone SDR Mode ====================
 // Uncomment to enable standalone SDR operation (no GNU Radio required)
 // This integrates PlutoSDR direct access, FM modem, and resampling
@@ -114,5 +135,116 @@
   // #define DEBUG_RESAMPLER
   // #define DEBUG_FM_MODEM
 #endif
+
+// ==================== UDP Modem Transport ====================
+// UDP-based modem communication (alternative to virtual PTY)
+//
+// Advantages over PTY:
+// - No MMDVMHost code modification required (works with stock MMDVMHost)
+// - Network-transparent (modem can be on different machine)
+// - Easy debugging with standard network tools (tcpdump, wireshark)
+// - Better error handling and reconnection logic
+//
+// Configuration:
+// - Uncomment USE_UDP_MODEM to enable UDP transport
+// - Configure addresses and ports below
+// - Update MMDVMHost MMDVM.ini with matching UDP settings
+//
+// When USE_UDP_MODEM is NOT defined, traditional PTY mode is used
+// (PTY mode requires MMDVMHost RTS patch)
+
+// Uncomment to enable UDP modem transport
+// #define USE_UDP_MODEM
+
+#ifdef USE_UDP_MODEM
+  // MMDVMHost connection (remote endpoint)
+  #ifndef UDP_MODEM_ADDRESS
+    #define UDP_MODEM_ADDRESS   "127.0.0.1"  // MMDVMHost IP address
+  #endif
+
+  #ifndef UDP_MODEM_PORT
+    #define UDP_MODEM_PORT      3335         // MMDVMHost UDP port
+  #endif
+
+  // Local binding (this modem)
+  #ifndef UDP_LOCAL_ADDRESS
+    #define UDP_LOCAL_ADDRESS   "127.0.0.1"  // Local bind address
+  #endif
+
+  #ifndef UDP_LOCAL_PORT
+    #define UDP_LOCAL_PORT      3334         // Local bind port
+  #endif
+
+  // Example configurations:
+  //
+  // Localhost (same machine):
+  //   UDP_MODEM_ADDRESS  "127.0.0.1"
+  //   UDP_MODEM_PORT     3335
+  //   UDP_LOCAL_ADDRESS  "127.0.0.1"
+  //   UDP_LOCAL_PORT     3334
+  //
+  // Network deployment (modem on Pi, host on server):
+  //   UDP_MODEM_ADDRESS  "192.168.1.10"   // Server running MMDVMHost
+  //   UDP_MODEM_PORT     3335
+  //   UDP_LOCAL_ADDRESS  "192.168.1.100"  // This Raspberry Pi
+  //   UDP_LOCAL_PORT     3334
+  //
+  // MMDVMHost MMDVM.ini configuration:
+  //   [Modem]
+  //   Protocol=udp
+  //   ModemAddress=192.168.1.100  # This modem's IP
+  //   ModemPort=3334              # This modem's port
+  //   LocalAddress=192.168.1.10   # MMDVMHost's IP
+  //   LocalPort=3335              # MMDVMHost's port
+#endif
+
+// ==================== Buffer Management ====================
+
+// Standard MMDVM frame block size
+// 720 samples = 30ms @ 24kHz sample rate
+// Aligns with MMDVMHost frame timing and prevents missed starts
+// Based on qradiolink optimization (commit 242705c)
+#define MMDVM_FRAME_BLOCK_SIZE     720U
+
+// TX Ring Buffer: ~300ms buffering (10 frames)
+#define TX_RINGBUFFER_SIZE         (MMDVM_FRAME_BLOCK_SIZE * 10)  // 7200 samples
+
+// RX Ring Buffer: ~266ms buffering (holds 2 DMR bursts)
+// Increased from 4800 to 6400 to handle DMR duplex traffic
+// Prevents buffer overflows during two-slot bursts
+// Based on qradiolink optimization (commit 2398c56)
+#define RX_RINGBUFFER_SIZE         6400U
+
+// RSSI Buffer: Match RX buffer size
+#define RSSI_RINGBUFFER_SIZE       RX_RINGBUFFER_SIZE
+
+// ==================== Gain Controls ====================
+
+// TX/RX gain in Q8 fixed-point format
+// Q8 format: value = actual_gain * 128
+// Examples:
+//   128 = 1.0x = 0dB
+//   256 = 2.0x = 6dB
+//   640 = 5.0x = 14dB (matches qradiolink)
+//   1024 = 8.0x = 18dB (maximum)
+
+// Default TX gain: 5.0x = ~14dB
+// Matches qradiolink's "sample *= 5" amplification
+#define DEFAULT_TX_GAIN 640
+
+// Default RX gain: 1.0x = 0dB
+#define DEFAULT_RX_GAIN 128
+
+// Per-mode TX gains (can be tuned for specific modes)
+#define DSTAR_TX_GAIN   DEFAULT_TX_GAIN
+#define DMR_TX_GAIN     DEFAULT_TX_GAIN
+#define YSF_TX_GAIN     DEFAULT_TX_GAIN
+#define P25_TX_GAIN     DEFAULT_TX_GAIN
+#define NXDN_TX_GAIN    DEFAULT_TX_GAIN
+#define FM_TX_GAIN      DEFAULT_TX_GAIN  // FM mode TX gain
+
+// FM mode squelch threshold (0-32767, Q15 format)
+// 328 = very sensitive (0.01), 1638 = medium (0.05), 3277 = high (0.10)
+#define FM_SQUELCH_THRESHOLD 1638  // Medium sensitivity
 
 #endif

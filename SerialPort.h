@@ -23,12 +23,17 @@
 #include "Globals.h"
 #include "SerialRB.h"
 #include "SerialController.h"
+#include "ISerialPort.h"
+#include "ProtocolV2.h"
 
 class CSerialPort {
 public:
   CSerialPort();
 
   void start();
+
+  // UDP modem port injection
+  void setPort(ISerialPort* port);
 
   void process();
 
@@ -67,6 +72,7 @@ private:
   CSerialRB m_repeat;
 #if defined(RPI)
   CSerialController m_controller;
+  ISerialPort* m_port;  // Polymorphic port (UDP or PTY)
 #endif
 
   void    sendACK();
@@ -76,6 +82,9 @@ private:
   uint8_t setConfig(const uint8_t* data, uint8_t length);
   uint8_t setMode(const uint8_t* data, uint8_t length);
   void    setMode(MMDVM_STATE modemState);
+
+  // Protocol V2: Handlers for unsupported modes (FM, POCSAG)
+  void    handleUnsupportedCommand(uint8_t command);
 
   // Hardware versions
   void    beginInt(uint8_t n, int speed);

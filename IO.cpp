@@ -25,6 +25,7 @@
 #include "Log.h"
 
 #include <pthread.h>
+#include <cmath>
 
 // Generated using [b, a] = butter(1, 0.001) in MATLAB
 static q31_t   DC_FILTER[] = {3367972, 0, 3367972, 0, 2140747704, 0}; // {b0, 0, b1, b2, -a1, -a2}
@@ -84,6 +85,8 @@ m_dmrTXLevel(128 * 128),
 m_ysfTXLevel(128 * 128),
 m_p25TXLevel(128 * 128),
 m_nxdnTXLevel(128 * 128),
+m_pocsagTXLevel(128 * 128),
+m_fmTXLevel(128 * 128),
 m_rxDCOffset(DC_OFFSET),
 m_txDCOffset(DC_OFFSET),
 m_ledCount(0U),
@@ -92,7 +95,9 @@ m_detect(false),
 m_adcOverflow(0U),
 m_dacOverflow(0U),
 m_watchdog(0U),
-m_lockout(false)
+m_lockout(false),
+m_txGain(DEFAULT_TX_GAIN),
+m_rxGain(DEFAULT_RX_GAIN)
 #if !defined(STANDALONE_MODE)
 ,m_zmqcontext(1),
 m_zmqsocket(m_zmqcontext, ZMQ_PUSH),
@@ -499,6 +504,9 @@ void CIO::write(MMDVM_STATE mode, q15_t* samples, uint16_t length, const uint8_t
     case STATE_NXDN:
       txLevel = m_nxdnTXLevel;
       break;
+    case STATE_POCSAG:
+      txLevel = m_pocsagTXLevel;
+      break;
     default:
       txLevel = m_cwIdTXLevel;
       break;
@@ -558,17 +566,18 @@ void CIO::setMode(MMDVM_STATE state)
   m_modemState = state;
 }
 
-void CIO::setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnTXLevel, int16_t txDCOffset, int16_t rxDCOffset)
+void CIO::setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnTXLevel, uint8_t pocsagTXLevel, int16_t txDCOffset, int16_t rxDCOffset)
 {
   m_pttInvert = pttInvert;
 
-  m_rxLevel      = q15_t(rxLevel * 128);
-  m_cwIdTXLevel  = q15_t(cwIdTXLevel * 128);
-  m_dstarTXLevel = q15_t(dstarTXLevel * 128);
-  m_dmrTXLevel   = q15_t(dmrTXLevel * 128);
-  m_ysfTXLevel   = q15_t(ysfTXLevel * 128);
-  m_p25TXLevel   = q15_t(p25TXLevel * 128);
-  m_nxdnTXLevel  = q15_t(nxdnTXLevel * 128);
+  m_rxLevel       = q15_t(rxLevel * 128);
+  m_cwIdTXLevel   = q15_t(cwIdTXLevel * 128);
+  m_dstarTXLevel  = q15_t(dstarTXLevel * 128);
+  m_dmrTXLevel    = q15_t(dmrTXLevel * 128);
+  m_ysfTXLevel    = q15_t(ysfTXLevel * 128);
+  m_p25TXLevel    = q15_t(p25TXLevel * 128);
+  m_nxdnTXLevel   = q15_t(nxdnTXLevel * 128);
+  m_pocsagTXLevel = q15_t(pocsagTXLevel * 128);
 
   m_rxDCOffset   = DC_OFFSET + rxDCOffset;
   m_txDCOffset   = DC_OFFSET + txDCOffset;
@@ -577,11 +586,12 @@ void CIO::setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rx
     m_rxLevel = -m_rxLevel;
   
   if (txInvert) {
-    m_dstarTXLevel = -m_dstarTXLevel;
-    m_dmrTXLevel   = -m_dmrTXLevel;
-    m_ysfTXLevel   = -m_ysfTXLevel;
-    m_p25TXLevel   = -m_p25TXLevel;
-    m_nxdnTXLevel  = -m_nxdnTXLevel;
+    m_dstarTXLevel  = -m_dstarTXLevel;
+    m_dmrTXLevel    = -m_dmrTXLevel;
+    m_ysfTXLevel    = -m_ysfTXLevel;
+    m_p25TXLevel    = -m_p25TXLevel;
+    m_nxdnTXLevel   = -m_nxdnTXLevel;
+    m_pocsagTXLevel = -m_pocsagTXLevel;
   }
 }
 
@@ -623,5 +633,29 @@ uint32_t CIO::getWatchdog()
 bool CIO::hasLockout() const
 {
   return m_lockout;
+}
+
+void CIO::setTXGain(uint16_t gain)
+{
+  // Clamp to maximum (8.0x = 18dB)
+  if (gain > 1024)
+    gain = 1024;
+
+  m_txGain = gain;
+
+  // Log gain change
+  LogDebug("TX gain set to %u (%.2f dB)", gain, 20.0f * log10f((float)gain / 128.0f));
+}
+
+void CIO::setRXGain(uint16_t gain)
+{
+  // Clamp to maximum (8.0x = 18dB)
+  if (gain > 1024)
+    gain = 1024;
+
+  m_rxGain = gain;
+
+  // Log gain change
+  LogDebug("RX gain set to %u (%.2f dB)", gain, 20.0f * log10f((float)gain / 128.0f));
 }
 

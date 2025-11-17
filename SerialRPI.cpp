@@ -39,10 +39,12 @@ void CSerialPort::beginInt(uint8_t n, int speed)
 {
   switch (n) {
     case 1U:
-     //      Serial.begin(speed);
       read_buffer = 0x00;
-      m_controller = CSerialController(VSERIAL, SERIAL_115200, false);
-      m_controller.open();
+      // Only initialize PTY controller if UDP port was not injected
+      if (m_port == nullptr) {
+        m_controller = CSerialController(VSERIAL, SERIAL_115200, false);
+        m_controller.open();
+      }
       break;
     default:
       break;
@@ -53,7 +55,13 @@ int CSerialPort::availableInt(uint8_t n)
 {
   switch (n) {
     case 1U:
-      return m_controller.read(&read_buffer,(uint8_t)(1 * sizeof(uint8_t)));
+      if (m_port != nullptr) {
+        // UDP mode: try to read one byte
+        return m_port->read(&read_buffer, 1);
+      } else {
+        // PTY mode: use controller
+        return m_controller.read(&read_buffer,(uint8_t)(1 * sizeof(uint8_t)));
+      }
     default:
       return 0;
   }
@@ -83,7 +91,13 @@ void CSerialPort::writeInt(uint8_t n, const uint8_t* data, uint16_t length, bool
 {
   switch (n) {
     case 1U:
-      m_controller.write(data, length);
+      if (m_port != nullptr) {
+        // UDP mode: use injected port
+        m_port->write(data, length);
+      } else {
+        // PTY mode: use controller
+        m_controller.write(data, length);
+      }
       break;
     default:
       break;

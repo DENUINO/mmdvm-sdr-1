@@ -56,6 +56,8 @@ enum MMDVM_STATE {
   STATE_YSF       = 3,
   STATE_P25       = 4,
   STATE_NXDN      = 5,
+  STATE_POCSAG    = 6,
+  STATE_FM        = 7,
 
   // Dummy states start at 90
   STATE_NXDNCAL1K = 91,
@@ -66,7 +68,8 @@ enum MMDVM_STATE {
   STATE_RSSICAL   = 96,
   STATE_CWID      = 97,
   STATE_DMRCAL    = 98,
-  STATE_DSTARCAL  = 99
+  STATE_DSTARCAL  = 99,
+  STATE_POCSAGCAL = 100
 };
 
 #include "SerialPort.h"
@@ -83,11 +86,15 @@ enum MMDVM_STATE {
 #include "P25TX.h"
 #include "NXDNRX.h"
 #include "NXDNTX.h"
+#include "POCSAGTX.h"
+#include "FMRX.h"
+#include "FMTX.h"
 #include "CalDStarRX.h"
 #include "CalDStarTX.h"
 #include "CalDMR.h"
 #include "CalP25.h"
 #include "CalNXDN.h"
+#include "CalPOCSAG.h"
 #include "CalRSSI.h"
 #include "CWIdTX.h"
 #include "Debug.h"
@@ -99,8 +106,10 @@ const uint8_t  MARK_NONE  = 0x00U;
 
 const uint16_t RX_BLOCK_SIZE = 2U;
 
-const uint16_t TX_RINGBUFFER_SIZE = 500U;
-const uint16_t RX_RINGBUFFER_SIZE = 9600U;
+// Ring buffer sizes now defined in Config.h
+// TX_RINGBUFFER_SIZE = 7200U (720 * 10 frames)
+// RX_RINGBUFFER_SIZE = 6400U
+// RSSI_RINGBUFFER_SIZE = 6400U
 
 extern MMDVM_STATE m_modemState;
 
@@ -109,6 +118,8 @@ extern bool m_dmrEnable;
 extern bool m_ysfEnable;
 extern bool m_p25Enable;
 extern bool m_nxdnEnable;
+extern bool m_pocsagEnable;
+extern bool m_fmEnable;
 
 extern bool m_duplex;
 
@@ -137,11 +148,17 @@ extern CP25TX p25TX;
 extern CNXDNRX nxdnRX;
 extern CNXDNTX nxdnTX;
 
+extern CPOCSAGTX pocsagTX;
+
+extern CFMRX fmRX;
+extern CFMTX fmTX;
+
 extern CCalDStarRX calDStarRX;
 extern CCalDStarTX calDStarTX;
 extern CCalDMR     calDMR;
 extern CCalP25     calP25;
 extern CCalNXDN    calNXDN;
+extern CCalPOCSAG  calPOCSAG;
 extern CCalRSSI    calRSSI;
 
 extern CCWIdTX cwIdTX;

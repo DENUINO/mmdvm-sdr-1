@@ -26,14 +26,20 @@
 #include "Log.h"
 #include "unistd.h"
 
+// Transport layer includes
+#ifdef USE_UDP_MODEM
+  #include "UDPModemPort.h"
+#endif
+
 // Global variables
 MMDVM_STATE m_modemState = STATE_IDLE;
 
-bool m_dstarEnable = true;
-bool m_dmrEnable   = true;
-bool m_ysfEnable   = true;
-bool m_p25Enable   = true;
-bool m_nxdnEnable  = true;
+bool m_dstarEnable  = true;
+bool m_dmrEnable    = true;
+bool m_ysfEnable    = true;
+bool m_p25Enable    = true;
+bool m_nxdnEnable   = true;
+bool m_pocsagEnable = true;
 
 bool m_duplex = true;
 
@@ -59,11 +65,14 @@ CP25TX     p25TX;
 CNXDNRX    nxdnRX;
 CNXDNTX    nxdnTX;
 
+CPOCSAGTX  pocsagTX;
+
 CCalDStarRX calDStarRX;
 CCalDStarTX calDStarTX;
 CCalDMR     calDMR;
 CCalP25     calP25;
 CCalNXDN    calNXDN;
+CCalPOCSAG  calPOCSAG;
 CCalRSSI    calRSSI;
 
 CCWIdTX cwIdTX;
@@ -73,10 +82,35 @@ CIO io;
 
 void setup()
 {
- LogDebug("MMDVM modem setup()");
- 
- serial.start();
- 
+  LogDebug("MMDVM modem setup()");
+
+#if defined(RPI) && defined(USE_UDP_MODEM)
+  // UDP transport mode
+  LogMessage("Initializing UDP modem transport");
+  LogMessage("  Remote: %s:%u", UDP_MODEM_ADDRESS, UDP_MODEM_PORT);
+  LogMessage("  Local:  %s:%u", UDP_LOCAL_ADDRESS, UDP_LOCAL_PORT);
+
+  static CUDPModemPort* udpPort = new CUDPModemPort(
+    UDP_MODEM_ADDRESS,
+    UDP_MODEM_PORT,
+    UDP_LOCAL_ADDRESS,
+    UDP_LOCAL_PORT
+  );
+
+  if (!udpPort->open()) {
+    LogError("Failed to open UDP modem port");
+    return;
+  }
+
+  // Inject UDP port into serial handler
+  serial.setPort(udpPort);
+  LogMessage("UDP modem port initialized successfully");
+#else
+  // PTY transport mode (default)
+  LogMessage("Using PTY transport (traditional mode)");
+#endif
+
+  serial.start();
 }
 
 void loop()
@@ -110,6 +144,9 @@ void loop()
   if (m_nxdnEnable && m_modemState == STATE_NXDN)
     nxdnTX.process();
 
+  if (m_pocsagEnable && m_modemState == STATE_POCSAG)
+    pocsagTX.process();
+
   if (m_modemState == STATE_DSTARCAL)
     calDStarTX.process();
 
@@ -121,6 +158,9 @@ void loop()
 
   if (m_modemState == STATE_NXDNCAL1K)
     calNXDN.process();
+
+  if (m_modemState == STATE_POCSAGCAL)
+    calPOCSAG.process();
 
   if (m_modemState == STATE_IDLE)
     cwIdTX.process();

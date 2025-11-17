@@ -24,8 +24,8 @@
 #include "GitVersion.h"
 #endif
 
-
 #include "SerialPort.h"
+#include "ProtocolV2.h"
 #include "Log.h"
 
 const uint8_t MMDVM_FRAME_START  = 0xE0U;
@@ -77,7 +77,7 @@ const uint8_t MMDVM_DEBUG3       = 0xF3U;
 const uint8_t MMDVM_DEBUG4       = 0xF4U;
 const uint8_t MMDVM_DEBUG5       = 0xF5U;
 
-#define DESCRIPTION              "MMDVM 20180327 (D-Star/DMR/System Fusion/P25/NXDN)"
+#define DESCRIPTION              "MMDVM-SDR 20250117 (D-Star/DMR/System Fusion/P25/NXDN/POCSAG)"
 
 #if defined(GITVERSION)
 #define concat(a, b) a " GitID #" b ""
@@ -87,7 +87,13 @@ const char HARDWARE[] = concat(DESCRIPTION, GITVERSION);
 const char HARDWARE[] = concat(DESCRIPTION, __TIME__, __DATE__);
 #endif
 
-const uint8_t PROTOCOL_VERSION   = 1U;
+// Protocol version is now configured in Config.h
+// Default to version 1 if not specified
+#if !defined(PROTOCOL_VERSION)
+  #define PROTOCOL_VERSION 1
+#endif
+
+const uint8_t PROTOCOL_VERSION_NUM = PROTOCOL_VERSION;
 
 
 CSerialPort::CSerialPort() :
@@ -97,9 +103,17 @@ m_len(0U),
 m_debug(false),
 m_repeat(),
 #if defined(RPI)
-m_controller()
+m_controller(),
+m_port(nullptr)
 #endif
 {
+}
+
+void CSerialPort::setPort(ISerialPort* port)
+{
+#if defined(RPI)
+  m_port = port;
+#endif
 }
 
 void CSerialPort::sendACK()
@@ -131,11 +145,15 @@ void CSerialPort::getStatus()
 {
   io.resetWatchdog();
 
+#if PROTOCOL_VERSION == 2
+  uint8_t reply[20U];  // Extended for Protocol V2
+#else
   uint8_t reply[15U];
+#endif
 
   // Send all sorts of interesting internal values
   reply[0U]  = MMDVM_FRAME_START;
-  reply[1U]  = 11U;
+  reply[1U]  = 0U;  // Will be set later
   reply[2U]  = MMDVM_GET_STATUS;
 
   reply[3U]  = 0x00U;
@@ -149,6 +167,7 @@ void CSerialPort::getStatus()
     reply[3U] |= 0x08U;
   if (m_nxdnEnable)
     reply[3U] |= 0x10U;
+  // POCSAG and FM are not enabled in mmdvm-sdr
 
   reply[4U]  = uint8_t(m_modemState);
 
@@ -160,24 +179,29 @@ void CSerialPort::getStatus()
 
   if (adcOverflow) {
     LogDebug("ADC Overflow");
-    reply[5U] |= 0x02U; }
+    reply[5U] |= 0x02U;
+  }
 
   if (io.hasRXOverflow()) {
     LogDebug("RX Overflow");
-    reply[5U] |= 0x04U; }
+    reply[5U] |= 0x04U;
+  }
 
   if (io.hasTXOverflow()) {
     LogDebug("TX Overflow");
-    reply[5U] |= 0x08U; }
+    reply[5U] |= 0x08U;
+  }
 
   if (io.hasLockout()) {
     LogDebug("Lockout");
-    reply[5U] |= 0x10U; }
+    reply[5U] |= 0x10U;
+  }
 
   if (dacOverflow) {
     LogDebug("DAC Overflow");
-    reply[5U] |= 0x20U; }
-    
+    reply[5U] |= 0x20U;
+  }
+
   reply[5U] |= m_dcd ? 0x40U : 0x00U;
 
   if (m_dstarEnable)
@@ -213,12 +237,26 @@ void CSerialPort::getStatus()
   else
     reply[11U] = 0U;
 
+#if PROTOCOL_VERSION == 2
+  // Protocol V2: Add POCSAG and FM buffer space
+  if (m_pocsagEnable)
+    reply[12U] = pocsagTX.getSpace();
+  else
+    reply[12U] = 0U;  // POCSAG TX buffer space
+
+  reply[13U] = 0U;  // FM TX buffer space (not supported)
+
+  reply[1U] = 14U;  // Total length for V2
+  writeInt(1U, reply, 14);
+#else
+  reply[1U] = 12U;  // Total length for V1
   writeInt(1U, reply, 12);
+#endif
 }
 
 void CSerialPort::getVersion()
 {
-  uint8_t reply[100U];
+  uint8_t reply[200U];
 
   LogDebug("getVersion() invoked");
 
@@ -226,9 +264,29 @@ void CSerialPort::getVersion()
   reply[1U] = 0U;
   reply[2U] = MMDVM_GET_VERSION;
 
-  reply[3U] = PROTOCOL_VERSION;
+  reply[3U] = PROTOCOL_VERSION_NUM;
 
   uint8_t count = 4U;
+
+#if PROTOCOL_VERSION == 2
+  // Protocol V2: Add capability flags
+  uint8_t capabilities = 0x00U;
+  capabilities |= CAP_DSTAR;   // D-Star supported
+  capabilities |= CAP_DMR;     // DMR supported
+  capabilities |= CAP_YSF;     // YSF supported
+  capabilities |= CAP_P25;     // P25 supported
+  capabilities |= CAP_NXDN;    // NXDN supported
+  capabilities |= CAP_POCSAG;  // POCSAG supported
+  // NOT: CAP_FM - not supported in mmdvm-sdr
+
+  reply[4U] = capabilities;
+  reply[5U] = EXCAP_NONE;  // Extended capabilities (future use)
+  count = 6U;
+
+  LogDebug("Protocol V2: Capabilities = 0x%02X", capabilities);
+#endif
+
+  // Append hardware description string
   for (uint8_t i = 0U; HARDWARE[i] != 0x00U; i++, count++)
     reply[count] = HARDWARE[i];
 
@@ -255,11 +313,12 @@ uint8_t CSerialPort::setConfig(const uint8_t* data, uint8_t length)
 
   m_debug = (data[0U] & 0x10U) == 0x10U;
 
-  bool dstarEnable = (data[1U] & 0x01U) == 0x01U;
-  bool dmrEnable   = (data[1U] & 0x02U) == 0x02U;
-  bool ysfEnable   = (data[1U] & 0x04U) == 0x04U;
-  bool p25Enable   = (data[1U] & 0x08U) == 0x08U;
-  bool nxdnEnable  = (data[1U] & 0x10U) == 0x10U;
+  bool dstarEnable  = (data[1U] & 0x01U) == 0x01U;
+  bool dmrEnable    = (data[1U] & 0x02U) == 0x02U;
+  bool ysfEnable    = (data[1U] & 0x04U) == 0x04U;
+  bool p25Enable    = (data[1U] & 0x08U) == 0x08U;
+  bool nxdnEnable   = (data[1U] & 0x10U) == 0x10U;
+  bool pocsagEnable = (data[1U] & 0x20U) == 0x20U;
 
   uint8_t txDelay = data[2U];
   if (txDelay > 50U)
@@ -278,6 +337,8 @@ uint8_t CSerialPort::setConfig(const uint8_t* data, uint8_t length)
   if (modemState == STATE_P25 && !p25Enable)
     return 4U;
   if (modemState == STATE_NXDN && !nxdnEnable)
+    return 4U;
+  if (modemState == STATE_POCSAG && !pocsagEnable)
     return 4U;
 
   uint8_t rxLevel = data[4U];
@@ -301,12 +362,13 @@ uint8_t CSerialPort::setConfig(const uint8_t* data, uint8_t length)
 
   m_modemState  = modemState;
 
-  m_dstarEnable = dstarEnable;
-  m_dmrEnable   = dmrEnable;
-  m_ysfEnable   = ysfEnable;
-  m_p25Enable   = p25Enable;
-  m_nxdnEnable  = nxdnEnable;
-  m_duplex      = !simplex;
+  m_dstarEnable  = dstarEnable;
+  m_dmrEnable    = dmrEnable;
+  m_ysfEnable    = ysfEnable;
+  m_p25Enable    = p25Enable;
+  m_nxdnEnable   = nxdnEnable;
+  m_pocsagEnable = pocsagEnable;
+  m_duplex       = !simplex;
 
   dstarTX.setTXDelay(txDelay);
   ysfTX.setTXDelay(txDelay);
@@ -322,7 +384,14 @@ uint8_t CSerialPort::setConfig(const uint8_t* data, uint8_t length)
 
   ysfTX.setLoDev(ysfLoDev);
 
-  io.setParameters(rxInvert, txInvert, pttInvert, rxLevel, cwIdTXLevel, dstarTXLevel, dmrTXLevel, ysfTXLevel, p25TXLevel, nxdnTXLevel, txDCOffset, rxDCOffset);
+  // Protocol V2: POCSAG TX level (if available in extended config, otherwise use default)
+  uint8_t pocsagTXLevel = (length >= 17U) ? data[16U] : 50U;  // Default to 50 if not provided
+
+  // Set POCSAG TX delay if enabled
+  if (m_pocsagEnable)
+    pocsagTX.setTXDelay(txDelay);
+
+  io.setParameters(rxInvert, txInvert, pttInvert, rxLevel, cwIdTXLevel, dstarTXLevel, dmrTXLevel, ysfTXLevel, p25TXLevel, nxdnTXLevel, pocsagTXLevel, txDCOffset, rxDCOffset);
 
   io.start();
 
@@ -855,8 +924,32 @@ void CSerialPort::process()
             break;
 #endif
 
+          // Protocol V2: FM mode commands (not supported in mmdvm-sdr)
+          case MMDVM_FM_PARAMS1:
+          case MMDVM_FM_PARAMS2:
+          case MMDVM_FM_PARAMS3:
+          case MMDVM_FM_DATA:
+            handleUnsupportedCommand(m_buffer[2U]);
+            break;
+
+          // Protocol V2: POCSAG commands
+          case MMDVM_POCSAG_DATA:
+            if (m_pocsagEnable) {
+              if (m_modemState == STATE_IDLE || m_modemState == STATE_POCSAG)
+                err = pocsagTX.writeData(m_buffer + 3U, m_len - 3U);
+            }
+            if (err == 0U) {
+              if (m_modemState == STATE_IDLE)
+                setMode(STATE_POCSAG);
+            } else {
+              DEBUG2("Received invalid POCSAG data", err);
+              sendNAK(err);
+            }
+            break;
+
           default:
             // Handle this, send a NAK back
+            LogDebug("Unknown command: 0x%02X", m_buffer[2U]);
             sendNAK(1U);
             break;
         }
@@ -1324,4 +1417,17 @@ void CSerialPort::writeDebug(const char* text, int16_t n1, int16_t n2, int16_t n
   reply[1U] = count;
 
   writeInt(1U, reply, count, true);
+}
+
+void CSerialPort::handleUnsupportedCommand(uint8_t command)
+{
+#if PROTOCOL_VERSION == 2
+  // Protocol V2: Return NAK with ERR_NOT_SUPPORTED for unsupported commands
+  LogDebug("Unsupported command: 0x%02X (FM/POCSAG not implemented)", command);
+  sendNAK(ERR_NOT_SUPPORTED);
+#else
+  // Protocol V1: Return generic NAK
+  LogDebug("Unsupported command: 0x%02X", command);
+  sendNAK(1U);
+#endif
 }

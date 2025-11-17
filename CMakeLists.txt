@@ -3,11 +3,24 @@ project(mmdvm-sdr VERSION 1.0.0 LANGUAGES CXX C)
 
 # ==================== Build Options ====================
 
+# Core build modes
 option(STANDALONE_MODE "Build standalone SDR version (no GNU Radio required)" ON)
 option(USE_NEON "Enable ARM NEON SIMD optimizations" ON)
 option(USE_TEXT_UI "Enable ncurses-based text UI" ON)
 option(PLUTO_SDR "Target ADALM PlutoSDR" ON)
 option(BUILD_TESTS "Build unit tests" ON)
+
+# Protocol version (1 or 2)
+set(PROTOCOL_VERSION "2" CACHE STRING "MMDVM protocol version (1 or 2)")
+set_property(CACHE PROTOCOL_VERSION PROPERTY STRINGS "1" "2")
+
+# Transport layer options
+option(USE_UDP_MODEM "Use UDP socket instead of virtual PTY for modem communication" OFF)
+option(USE_SHARED_MEMORY_IPC "Enable shared memory IPC (experimental)" OFF)
+
+# Mode support options
+option(ENABLE_FM_MODE "Enable FM analog mode support" ON)
+option(ENABLE_POCSAG "Enable POCSAG paging mode support" OFF)
 
 # ==================== Compiler Settings ====================
 
@@ -47,10 +60,53 @@ if(USE_TEXT_UI)
   message(STATUS "Text UI enabled")
 endif()
 
+# Protocol version
+add_definitions(-DPROTOCOL_VERSION=${PROTOCOL_VERSION})
+message(STATUS "MMDVM Protocol Version: ${PROTOCOL_VERSION}")
+
+# UDP modem transport
+if(USE_UDP_MODEM)
+  add_definitions(-DUSE_UDP_MODEM)
+  message(STATUS "UDP modem transport: ENABLED")
+else()
+  message(STATUS "UDP modem transport: DISABLED (using PTY)")
+endif()
+
+# Shared memory IPC
+if(USE_SHARED_MEMORY_IPC)
+  add_definitions(-DUSE_SHARED_MEMORY_IPC)
+  message(STATUS "Shared memory IPC: ENABLED (experimental)")
+endif()
+
+# FM mode
+if(ENABLE_FM_MODE)
+  add_definitions(-DENABLE_FM_MODE)
+  message(STATUS "FM analog mode: ENABLED")
+endif()
+
+# POCSAG mode
+if(ENABLE_POCSAG)
+  add_definitions(-DENABLE_POCSAG)
+  message(STATUS "POCSAG paging mode: ENABLED")
+endif()
+
 # ==================== Dependencies ====================
 
 # Required: pthread, math, realtime
 find_package(Threads REQUIRED)
+
+# Check for POSIX support (required for shared memory and UDP)
+include(CheckIncludeFile)
+check_include_file(sys/socket.h HAVE_SYS_SOCKET_H)
+check_include_file(sys/mman.h HAVE_SYS_MMAN_H)
+
+if(USE_UDP_MODEM AND NOT HAVE_SYS_SOCKET_H)
+  message(FATAL_ERROR "UDP modem requires POSIX socket support (sys/socket.h not found)")
+endif()
+
+if(USE_SHARED_MEMORY_IPC AND NOT HAVE_SYS_MMAN_H)
+  message(FATAL_ERROR "Shared memory IPC requires POSIX mman support (sys/mman.h not found)")
+endif()
 
 # Check for PlutoSDR dependencies BEFORE adding the definition
 if(STANDALONE_MODE AND PLUTO_SDR)
@@ -168,6 +224,30 @@ set(MODE_SOURCES
   CWIdTX.cpp
 )
 
+# FM mode sources (conditional)
+if(ENABLE_FM_MODE)
+  # Note: FMRX/FMTX not yet implemented, using FMModem for now
+  # When implemented, add:
+  # list(APPEND MODE_SOURCES FMRX.cpp FMTX.cpp FMDefines.h)
+  message(STATUS "FM mode will use existing FMModem component")
+endif()
+
+# POCSAG mode sources (conditional)
+if(ENABLE_POCSAG)
+  # Check if POCSAG files exist
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/POCSAGRX.cpp")
+    list(APPEND MODE_SOURCES
+      POCSAGRX.cpp
+      POCSAGTX.cpp
+      POCSAGDefines.h
+    )
+    message(STATUS "POCSAG mode sources found and added")
+  else()
+    message(WARNING "POCSAG mode enabled but source files not found. Will build without POCSAG support.")
+    set(ENABLE_POCSAG OFF CACHE BOOL "Enable POCSAG paging mode support" FORCE)
+  endif()
+endif()
+
 # Ring buffers
 set(BUFFER_SOURCES
   SampleRB.cpp
@@ -199,6 +279,43 @@ else()
   set(SDR_SOURCES "")
 endif()
 
+# UDP socket layer sources (conditional)
+if(USE_UDP_MODEM)
+  # Check if UDP files exist
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/UDPSocket.cpp")
+    set(UDP_SOURCES
+      UDPSocket.cpp
+      UDPSocket.h
+      UDPModemPort.cpp
+      UDPModemPort.h
+    )
+    message(STATUS "UDP modem sources found and added")
+  else()
+    message(WARNING "UDP modem enabled but source files not found. Please implement UDPSocket and UDPModemPort.")
+    message(WARNING "See docs/mmdvmhost/UDP_IMPLEMENTATION_PLAN.md for implementation details.")
+    set(UDP_SOURCES "")
+  endif()
+else()
+  set(UDP_SOURCES "")
+endif()
+
+# Shared memory IPC sources (conditional)
+if(USE_SHARED_MEMORY_IPC)
+  # Check if SharedMemoryIPC files exist
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/SharedMemoryIPC.cpp")
+    set(SHMEM_SOURCES
+      SharedMemoryIPC.cpp
+      SharedMemoryIPC.h
+    )
+    message(STATUS "Shared memory IPC sources found and added")
+  else()
+    message(WARNING "Shared memory IPC enabled but source files not found.")
+    set(SHMEM_SOURCES "")
+  endif()
+else()
+  set(SHMEM_SOURCES "")
+endif()
+
 # Text UI sources
 if(USE_TEXT_UI)
   set(UI_SOURCES
@@ -219,6 +336,8 @@ set(ALL_SOURCES
   ${MATH_SOURCES}
   ${SDR_SOURCES}
   ${UI_SOURCES}
+  ${UDP_SOURCES}
+  ${SHMEM_SOURCES}
 )
 
 # ==================== Executable Target ====================
@@ -239,6 +358,12 @@ target_link_libraries(mmdvm
   rt
   stdc++
 )
+
+# Additional libraries for shared memory
+if(USE_SHARED_MEMORY_IPC)
+  # RT library is already linked above, which includes shm_* functions
+  message(STATUS "Shared memory support: using librt")
+endif()
 
 # Link libiio for standalone mode
 if(STANDALONE_MODE AND PLUTO_SDR)
@@ -261,17 +386,33 @@ install(TARGETS mmdvm
   RUNTIME DESTINATION bin
 )
 
-# Install configuration file
-# install(FILES mmdvm-sdr.conf
-#   DESTINATION /etc
-# )
+# Install configuration files
+install(FILES Config.h
+  DESTINATION /etc/mmdvm-sdr
+  OPTIONAL
+)
+
+# Install documentation
+install(FILES
+  README.md
+  STATUS.md
+  DESTINATION share/doc/mmdvm-sdr
+  OPTIONAL
+)
+
+# Install build options documentation
+install(FILES
+  BUILD_OPTIONS.md
+  DESTINATION share/doc/mmdvm-sdr
+  OPTIONAL
+)
 
 # ==================== Unit Tests ====================
 
 if(BUILD_TESTS)
   enable_testing()
 
-  # Test executables
+  # Core component tests
   add_executable(test_resampler tests/test_resampler.cpp Resampler.cpp)
   target_include_directories(test_resampler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
   target_link_libraries(test_resampler m)
@@ -290,6 +431,41 @@ if(BUILD_TESTS)
   target_link_libraries(test_fmmodem m)
   add_test(NAME FMModem COMMAND test_fmmodem)
 
+  # UDP socket tests (if UDP enabled and files exist)
+  if(USE_UDP_MODEM AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_udpsocket.cpp")
+    add_executable(test_udpsocket tests/test_udpsocket.cpp UDPSocket.cpp)
+    target_include_directories(test_udpsocket PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_udpsocket Threads::Threads)
+    add_test(NAME UDPSocket COMMAND test_udpsocket)
+
+    add_executable(test_udpmodemport tests/test_udpmodemport.cpp UDPModemPort.cpp UDPSocket.cpp ISerialPort.cpp)
+    target_include_directories(test_udpmodemport PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_udpmodemport Threads::Threads)
+    add_test(NAME UDPModemPort COMMAND test_udpmodemport)
+
+    message(STATUS "UDP modem tests added")
+  endif()
+
+  # Shared memory tests (if enabled and files exist)
+  if(USE_SHARED_MEMORY_IPC AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_sharedmemory.cpp")
+    add_executable(test_sharedmemory tests/test_sharedmemory.cpp SharedMemoryIPC.cpp)
+    target_include_directories(test_sharedmemory PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_sharedmemory rt Threads::Threads)
+    add_test(NAME SharedMemoryIPC COMMAND test_sharedmemory)
+
+    message(STATUS "Shared memory IPC tests added")
+  endif()
+
+  # POCSAG tests (if enabled and files exist)
+  if(ENABLE_POCSAG AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_pocsag.cpp")
+    add_executable(test_pocsag tests/test_pocsag.cpp POCSAGRX.cpp POCSAGTX.cpp)
+    target_include_directories(test_pocsag PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_pocsag m)
+    add_test(NAME POCSAG COMMAND test_pocsag)
+
+    message(STATUS "POCSAG tests added")
+  endif()
+
   message(STATUS "Unit tests enabled")
 endif()
 
@@ -298,11 +474,29 @@ endif()
 message(STATUS "")
 message(STATUS "========== MMDVM-SDR Build Configuration ==========")
 message(STATUS "Build type:        ${CMAKE_BUILD_TYPE}")
+message(STATUS "")
+message(STATUS "--- Core Options ---")
 message(STATUS "Standalone mode:   ${STANDALONE_MODE}")
 message(STATUS "PlutoSDR target:   ${PLUTO_SDR}")
 message(STATUS "NEON optimization: ${USE_NEON}")
 message(STATUS "Text UI:           ${USE_TEXT_UI}")
 message(STATUS "Unit tests:        ${BUILD_TESTS}")
+message(STATUS "")
+message(STATUS "--- Protocol & Transport ---")
+message(STATUS "Protocol version:  ${PROTOCOL_VERSION}")
+message(STATUS "UDP modem:         ${USE_UDP_MODEM}")
+message(STATUS "Shared memory IPC: ${USE_SHARED_MEMORY_IPC}")
+message(STATUS "")
+message(STATUS "--- Mode Support ---")
+message(STATUS "FM mode:           ${ENABLE_FM_MODE}")
+message(STATUS "POCSAG mode:       ${ENABLE_POCSAG}")
+message(STATUS "D-Star:            ON (always)")
+message(STATUS "DMR:               ON (always)")
+message(STATUS "YSF:               ON (always)")
+message(STATUS "P25:               ON (always)")
+message(STATUS "NXDN:              ON (always)")
+message(STATUS "")
+message(STATUS "--- Compiler ---")
 message(STATUS "C++ compiler:      ${CMAKE_CXX_COMPILER}")
 message(STATUS "C++ flags:         ${CMAKE_CXX_FLAGS}")
 message(STATUS "===================================================")
