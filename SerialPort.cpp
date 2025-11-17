@@ -387,11 +387,14 @@ uint8_t CSerialPort::setConfig(const uint8_t* data, uint8_t length)
   // Protocol V2: POCSAG TX level (if available in extended config, otherwise use default)
   uint8_t pocsagTXLevel = (length >= 17U) ? data[16U] : 50U;  // Default to 50 if not provided
 
+  // Protocol V2: FM TX level (if available in extended config, otherwise use default)
+  uint8_t fmTXLevel = (length >= 18U) ? data[17U] : 50U;  // Default to 50 if not provided
+
   // Set POCSAG TX delay if enabled
   if (m_pocsagEnable)
     pocsagTX.setTXDelay(txDelay);
 
-  io.setParameters(rxInvert, txInvert, pttInvert, rxLevel, cwIdTXLevel, dstarTXLevel, dmrTXLevel, ysfTXLevel, p25TXLevel, nxdnTXLevel, pocsagTXLevel, txDCOffset, rxDCOffset);
+  io.setParameters(rxInvert, txInvert, pttInvert, rxLevel, cwIdTXLevel, dstarTXLevel, dmrTXLevel, ysfTXLevel, p25TXLevel, nxdnTXLevel, pocsagTXLevel, fmTXLevel, txDCOffset, rxDCOffset);
 
   io.start();
 

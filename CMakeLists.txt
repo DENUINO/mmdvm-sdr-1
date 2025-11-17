@@ -467,6 +467,9 @@ if(BUILD_TESTS)
   endif()
 
   message(STATUS "Unit tests enabled")
+
+  # Integration tests subdirectory
+  add_subdirectory(tests/integration)
 endif()
 
 # ==================== Build Summary ====================
