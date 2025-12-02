@@ -25,6 +25,8 @@
 #include "IO.h"
 #include <pthread.h>
 #include <vector>
+#include <algorithm>
+#include <complex>
 
 #if defined(RPI)
 
@@ -51,8 +53,8 @@ void CIO::initInt()
 
 void CIO::startInt()
 {
-    
-	DEBUG1("IO Int start()");
+
+        DEBUG1("IO Int start()");
     if (::pthread_mutex_init(&m_TXlock, NULL) != 0)
     {
         printf("\n Tx mutex init failed\n");
@@ -62,6 +64,19 @@ void CIO::startInt()
     {
         printf("\n RX mutex init failed\n");
         exit(1);;
+    }
+
+    if (!m_frontend.open()) {
+        LogError("Failed to open SoapySX frontend");
+    } else {
+        if (!m_frontend.startRx())
+            LogError("Failed to start RX stream");
+        if (!m_frontend.startTx())
+            LogError("Failed to start TX stream");
+
+        m_sdrSampleRate = m_frontend.getSampleRate();
+        m_rxResampleRatio = m_sdrSampleRate / double(MODEM_SAMPLE_RATE);
+        m_txResampleRatio = m_sdrSampleRate / double(MODEM_SAMPLE_RATE);
     }
 
     ::pthread_create(&m_thread, NULL, helper, this);
@@ -99,72 +114,64 @@ void* CIO::helperRX(void* arg)
 
 void CIO::interrupt()
 {
+    std::vector<std::complex<float>> iqOut;
+    iqOut.reserve(512);
 
-    uint16_t sample = DC_OFFSET;
-    uint8_t control = MARK_NONE;
     ::pthread_mutex_lock(&m_TXlock);
-   while(m_txBuffer.get(sample, control))
-   {
+    while (iqOut.size() < 512 && m_txBuffer.getData() > 0) {
+        uint16_t sample = 0;
+        uint8_t control = MARK_NONE;
+        m_txBuffer.get(sample, control);
 
-        sample *= 5;		// amplify by 12dB	
-        short signed_sample = (short)sample;
-
-        if(m_audiobuf.size() >= 720)
-        {
-            zmq::message_t reply (720*sizeof(short));
-            memcpy (reply.data (), (unsigned char *)m_audiobuf.data(), 720*sizeof(short));
-            m_zmqsocket.send (reply, zmq::send_flags::dontwait);
-            usleep(9600 * 3);
-            m_audiobuf.erase(m_audiobuf.begin(), m_audiobuf.begin()+720);
-            m_audiobuf.push_back(signed_sample);
+        q15_t current = q15_t(sample);
+        double step = m_txResampleRatio;
+        double pos = m_txFrac;
+        while (pos < step && iqOut.size() < 512) {
+            double interp = m_prevTxSample + (current - m_prevTxSample) * (pos / step);
+            float scaled = float(std::clamp(interp / 32768.0, -1.0, 1.0));
+            iqOut.emplace_back(scaled, 0.0f);
+            pos += 1.0;
         }
-        else
-        {
-            m_audiobuf.push_back(signed_sample);
-        }
+        m_txFrac = pos - step;
+        m_prevTxSample = current;
+    }
+    ::pthread_mutex_unlock(&m_TXlock);
 
-   }
-   ::pthread_mutex_unlock(&m_TXlock);
-   
-    sample = 2048U;
-
-#if defined(SEND_RSSI_DATA)
-    //m_rssiBuffer.put(ADC->ADC_CDR[RSSI_CDR_Chan]);
-#else
-    //m_rssiBuffer.put(0U);
-#endif
-
-    //m_watchdog++;
-	
+    if (!iqOut.empty())
+        m_frontend.writeIq(iqOut.data(), iqOut.size());
 }
 
 void CIO::interruptRX()
 {
-
-    uint16_t sample = DC_OFFSET;
-    uint8_t control = MARK_NONE;
-    zmq::message_t mq_message;
-    zmq::recv_result_t recv_result = m_zmqsocketRX.recv(mq_message, zmq::recv_flags::none);
-    //usleep(500); // RX buffer overflows without the block_size change in IO::process()
-    int size = mq_message.size();
-    if(size < 1)
+    std::complex<float> rxBuf[512];
+    int got = m_frontend.readIq(rxBuf, 512);
+    if (got <= 0)
         return;
-    
+
+    double step = m_rxResampleRatio;
+    double acc = m_rxFrac;
+
     ::pthread_mutex_lock(&m_RXlock);
-    u_int16_t rx_buf_space = m_rxBuffer.getSpace();
-    
-    for(int i=0;i < size;i+=2)
-    {
-        short signed_sample = 0;
-        memcpy(&signed_sample, (unsigned char*)mq_message.data() + i, sizeof(short));
-        m_rxBuffer.put((uint16_t)signed_sample, control);
-        m_rssiBuffer.put(3U);
+    for (int i = 0; i < got; ++i) {
+        float realVal = rxBuf[i].real();
+        realVal = std::clamp(realVal, -1.0f, 1.0f);
+        q15_t current = q15_t(realVal * 32767.0f);
+
+        acc += 1.0;
+        if (acc >= step) {
+            m_rxBuffer.put(uint16_t(current), MARK_NONE);
+            m_rssiBuffer.put(uint16_t(std::abs(current)));
+            acc -= step;
+        }
+        m_prevRxSample = current;
     }
+    m_rxFrac = acc;
     ::pthread_mutex_unlock(&m_RXlock);
     return;
 }
 
 bool CIO::getCOSInt()
+
 {
 	return m_COSint;
 }

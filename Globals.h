@@ -99,6 +99,9 @@ const uint8_t  MARK_NONE  = 0x00U;
 
 const uint16_t RX_BLOCK_SIZE = 2U;
 
+// Baseband sample rate used by the modem DSP stages (Hz)
+const uint32_t MODEM_SAMPLE_RATE = 48000U;
+
 const uint16_t TX_RINGBUFFER_SIZE = 500U;
 const uint16_t RX_RINGBUFFER_SIZE = 9600U;
 

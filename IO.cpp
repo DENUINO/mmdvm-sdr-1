@@ -24,6 +24,8 @@
 
 #include "Log.h"
 
+#include <cstdlib>
+
 // Generated using [b, a] = butter(1, 0.001) in MATLAB
 static q31_t   DC_FILTER[] = {3367972, 0, 3367972, 0, 2140747704, 0}; // {b0, 0, b1, b2, -a1, -a2}
 const uint32_t DC_FILTER_STAGES = 1U; // One Biquad stage
@@ -91,10 +93,16 @@ m_adcOverflow(0U),
 m_dacOverflow(0U),
 m_watchdog(0U),
 m_lockout(false),
-m_zmqcontext(1),
-m_zmqsocket(m_zmqcontext, ZMQ_PUSH),
-m_zmqcontextRX(1),
-m_zmqsocketRX(m_zmqcontextRX, ZMQ_PULL)
+m_sdrSampleRate(125000.0),
+m_centerFrequency(446000000.0),
+m_rxGainDb(30.0),
+m_txGainDb(0.0),
+m_rxResampleRatio(1.0),
+m_txResampleRatio(1.0),
+m_rxFrac(0.0),
+m_txFrac(0.0),
+m_prevRxSample(0),
+m_prevTxSample(0)
 {
   ::memset(m_rrcState,      0x00U,  70U * sizeof(q15_t));
   ::memset(m_gaussianState, 0x00U,  40U * sizeof(q15_t));
@@ -129,12 +137,30 @@ m_zmqsocketRX(m_zmqcontextRX, ZMQ_PULL)
   m_nxdnISincFilter.pCoeffs = NXDN_ISINC_FILTER;
 
   initInt();
-  
+
   selfTest();
   setCOSInt(false);
-  
-  m_zmqsocket.bind ("ipc:///tmp/mmdvm-tx.ipc");  
-  m_zmqsocketRX.connect ("ipc:///tmp/mmdvm-rx.ipc");
+
+  const char *freqEnv = std::getenv("SX_FREQ_HZ");
+  if (freqEnv != nullptr)
+    m_centerFrequency = ::atof(freqEnv);
+
+  const char *sampEnv = std::getenv("SX_SAMPLE_RATE");
+  if (sampEnv != nullptr)
+    m_sdrSampleRate = ::atof(sampEnv);
+
+  const char *rxGainEnv = std::getenv("SX_RX_GAIN_DB");
+  if (rxGainEnv != nullptr)
+    m_rxGainDb = ::atof(rxGainEnv);
+
+  const char *txGainEnv = std::getenv("SX_TX_GAIN_DB");
+  if (txGainEnv != nullptr)
+    m_txGainDb = ::atof(txGainEnv);
+
+  m_frontend.setFrequency(m_centerFrequency);
+  m_frontend.setSampleRate(m_sdrSampleRate);
+  m_frontend.setRxGain(m_rxGainDb);
+  m_frontend.setTxGain(m_txGainDb);
 }
 
 void CIO::selfTest()

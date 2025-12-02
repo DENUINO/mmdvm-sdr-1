@@ -25,7 +25,7 @@
 
 #include "SampleRB.h"
 #include "RSSIRB.h"
-#include <zmq.hpp>
+#include "SoapySxFrontend.h"
 
 class CIO {
 public:
@@ -107,13 +107,21 @@ private:
   volatile uint32_t    m_watchdog;
 
   bool                 m_lockout;
-  zmq::context_t m_zmqcontext;
-  zmq::socket_t m_zmqsocket;
-  std::vector<short> m_audiobuf;
-  
-  zmq::context_t m_zmqcontextRX;
-  zmq::socket_t m_zmqsocketRX;
-  std::vector<short> m_audiobufRX;
+  // SDR frontend
+  SoapySxFrontend    m_frontend;
+  double             m_sdrSampleRate;
+  double             m_centerFrequency;
+  double             m_rxGainDb;
+  double             m_txGainDb;
+
+  // Resampling helpers
+  double             m_rxResampleRatio;
+  double             m_txResampleRatio;
+  double             m_rxFrac;
+  double             m_txFrac;
+  q15_t              m_prevRxSample;
+  q15_t              m_prevTxSample;
+
   pthread_mutex_t m_TXlock;
   pthread_mutex_t m_RXlock;
   bool m_COSint;
