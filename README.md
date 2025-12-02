@@ -14,9 +14,11 @@
 
 ## Install:
 
-Requires an additional dependency, libzmq for GNU radio integration. Install libzmq and libzmq-dev. On Debian Bullseye:
+Requires SoapySDR 0.8+ with the SoapySX driver (from the `sxxcvr` repository) to access the SX1255 front-end.
 
-    apt-get install libzmq3-dev libzmq5
+On Debian/Raspberry Pi OS:
+
+    apt-get install libsoapysdr-dev soapysdr-module-all
 
 Clone, compile mmdvm-sdr
 
@@ -35,8 +37,19 @@ For cross-compiling arm ([rpitools](https://github.com/raspberrypi/tools) to be 
     make
 
 Running the modem binary:
- 
-    ./mmdvm 
+
+    ./mmdvm
+
+Environment variables control the SX1255 frontend:
+
+* `SX_FREQ_HZ` – center frequency in Hz (default: 446000000)
+* `SX_SAMPLE_RATE` – SoapySDR sample rate in samples/s (default: 125000)
+* `SX_RX_GAIN_DB` – RX gain in dB (default: 30)
+* `SX_TX_GAIN_DB` – TX gain in dB (default: 0)
+
+Example for Raspberry Pi with SoapySX installed:
+
+    SX_FREQ_HZ=446000000 SX_SAMPLE_RATE=125000 ./mmdvm
 
 It will display the PTY endpoint, which has to be specified in the MMDVHost/MMDVM.ini.
 
